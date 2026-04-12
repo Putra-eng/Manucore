@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ManuCore — Akses Sistem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --off-white: #F5F3EE;
+    --cream: #EDE9E0;
+    --red: #C8102E;
+    --red-dark: #A00C23;
+    --red-glow: rgba(200, 16, 46, 0.12);
+    --black: #0D0D0D;
+    --dark: #1A1A1A;
+    --dark-gray: #2C2C2C;
+    --mid-gray: #555;
+    --light-gray: #888;
+    --border: rgba(0,0,0,0.1);
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: var(--body);
+    background: var(--black);
+    color: var(--dark);
+    cursor: none;
+  }
+
+  /* CURSOR */
+  .cursor {
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s ease;
+  }
+  .cursor-ring {
+    width: 28px; height: 28px;
+    border: 1px solid rgba(200,16,46,0.45);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s, height 0.2s, background 0.2s;
+  }
+  .cursor-ring.hovered {
+    width: 44px; height: 44px;
+    background: var(--red-glow);
+  }
+
+  /* SCROLLBAR */
+  .right-panel::-webkit-scrollbar { width: 3px; }
+  .right-panel::-webkit-scrollbar-thumb { background: var(--red); }
+
+  /* LAYOUT */
+  .auth-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ===== LEFT PANEL ===== */
+  .left-panel {
+    background: var(--black);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem;
+    overflow: hidden;
+  }
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,16,46,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,16,46,0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+  .left-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -10%; left: -10%;
+    width: 70%; height: 70%;
+    background: radial-gradient(ellipse, rgba(200,16,46,0.18) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .left-watermark {
+    position: absolute;
+    bottom: -2rem; left: -1rem;
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 18vw;
+    color: rgba(255,255,255,0.02);
+    line-height: 1;
+    pointer-events: none;
+    white-space: nowrap;
+    letter-spacing: 4px;
+    user-select: none;
+  }
+  .left-top { position: relative; z-index: 2; }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    margin-bottom: 4rem;
+  }
+  .brand-mark {
+    width: 40px; height: 40px;
+    background: var(--red);
+    display: grid;
+    place-items: center;
+    clip-path: polygon(0 0, 85% 0, 100% 50%, 85% 100%, 0 100%, 15% 50%);
+    flex-shrink: 0;
+  }
+  .brand-mark span {
+    font-family: var(--display);
+    font-weight: 900;
+    color: white;
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+  .brand-text {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--off-white);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .brand-text span { color: var(--red); }
+  .left-headline {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(2.4rem, 4vw, 3.8rem);
+    line-height: 0.93;
+    color: var(--off-white);
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    margin-bottom: 1.5rem;
+  }
+  .left-headline .acc { color: var(--red); }
+  .left-headline .stroke {
+    -webkit-text-stroke: 1px rgba(245,243,238,0.25);
+    color: transparent;
+  }
+  .left-sub {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: #555;
+    line-height: 1.7;
+    max-width: 340px;
+  }
+  .status-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 3rem;
+    position: relative;
+    z-index: 2;
+  }
+  .status-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    animation: slideCard 0.6s ease forwards;
+    opacity: 0;
+  }
+  .status-card:nth-child(1) { animation-delay: 0.2s; }
+  .status-card:nth-child(2) { animation-delay: 0.4s; }
+  .status-card:nth-child(3) { animation-delay: 0.6s; }
+  @keyframes slideCard {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.green  { background: #00C850; box-shadow: 0 0 8px rgba(0,200,80,0.6); }
+  .status-dot.red    { background: var(--red); box-shadow: 0 0 8px rgba(200,16,46,0.6); }
+  .status-dot.yellow { background: #F5C400; box-shadow: 0 0 8px rgba(245,196,0,0.6); }
+  .status-card-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #555;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .status-card-val {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--off-white);
+  }
+  .left-bottom {
+    position: relative; z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .left-footer-text {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: #333;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .left-footer-text span { color: var(--red); }
+  .version-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: #444;
+    border: 1px solid #222;
+    padding: 4px 10px;
+    letter-spacing: 1px;
+  }
+
+  /* ===== RIGHT PANEL ===== */
+  .right-panel {
+    background: var(--off-white);
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .right-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+  .right-panel::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px; height: 120px;
+    background: var(--red);
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+  }
+
+  .form-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 420px;
+    padding: 3rem 2rem;
+    margin: auto;
+  }
+
+  /* ---- SWITCH TABS ---- */
+  .switch-tabs {
+    display: flex;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    padding: 4px;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+  .switch-track {
+    position: absolute;
+    top: 4px; left: 4px;
+    height: calc(100% - 8px);
+    width: calc(50% - 4px);
+    background: var(--red);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+  }
+  .switch-track.right { transform: translateX(calc(100% + 4px)); }
+  .switch-btn {
+    flex: 1;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    border: none;
+    background: transparent;
+    padding: 12px 16px;
+    cursor: none;
+    position: relative;
+    z-index: 1;
+    color: var(--mid-gray);
+    transition: color 0.3s ease;
+  }
+  .switch-btn.active { color: white; }
+
+  /* ---- FORM HEADER ---- */
+  .form-header { margin-bottom: 2rem; }
+  .form-label-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+  }
+  .form-label-tag::before { content: ''; width: 20px; height: 1px; background: var(--red); }
+  .form-title {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 2.6rem;
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: var(--black);
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+  }
+  .form-title .acc { color: var(--red); }
+  .form-desc {
+    font-size: 0.875rem;
+    font-weight: 300;
+    color: var(--mid-gray);
+    line-height: 1.6;
+  }
+
+  /* ---- FORMS ---- */
+  .form-panel {
+    position: absolute;
+    width: calc(100% - 4rem);
+    max-width: 420px;
+    transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .form-panel.login-panel {
+    opacity: 1; transform: translateX(0);
+    pointer-events: all; position: relative;
+    width: 100%; max-width: 100%;
+  }
+  .form-panel.register-panel {
+    opacity: 0; transform: translateX(60px);
+    pointer-events: none; position: absolute;
+    top: 0; left: 0; width: 100%;
+  }
+  .forms-area.show-register .login-panel {
+    opacity: 0; transform: translateX(-60px);
+    pointer-events: none; position: absolute;
+    top: 0; left: 0; width: 100%;
+  }
+  .forms-area.show-register .register-panel {
+    opacity: 1; transform: translateX(0);
+    pointer-events: all; position: relative;
+    width: 100%; max-width: 100%;
+  }
+  .forms-area { position: relative; }
+
+  /* ---- INPUT FIELDS ---- */
+  .field-group { margin-bottom: 1.1rem; }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.875rem;
+    margin-bottom: 1.1rem;
+  }
+  .field-row .field-group { margin-bottom: 0; }
+  .field-label {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--mid-gray);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .field-wrap { position: relative; }
+  .field-icon {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .field-icon svg { width: 15px; height: 15px; fill: #aaa; display: block; }
+  .field-input {
+    width: 100%;
+    font-family: var(--body);
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--black);
+    background: white;
+    border: 1px solid var(--border);
+    padding: 12px 14px 12px 42px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  .field-input::placeholder { color: #bbb; font-size: 0.875rem; }
+  .field-input:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(200,16,46,0.07);
+  }
+  .field-input:focus + .field-line { width: 100%; }
+  .field-line {
+    position: absolute; bottom: 0; left: 0;
+    height: 2px; width: 0;
+    background: var(--red);
+    transition: width 0.3s ease;
+  }
+  .eye-toggle {
+    position: absolute; right: 12px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none; cursor: none; padding: 4px;
+  }
+  .eye-toggle svg { width: 16px; height: 16px; fill: #aaa; display: block; transition: fill 0.2s; }
+  .eye-toggle:hover svg { fill: var(--red); }
+  .field-select {
+    width: 100%;
+    font-family: var(--body);
+    font-size: 0.9rem;
+    color: var(--black);
+    background: white;
+    border: 1px solid var(--border);
+    padding: 12px 14px 12px 42px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    border-radius: 0;
+    cursor: none;
+  }
+  .field-select:focus { border-color: var(--red); }
+  .check-group {
+    display: flex; align-items: flex-start;
+    gap: 10px; margin-bottom: 1.5rem;
+  }
+  .check-box {
+    width: 18px; height: 18px;
+    border: 1px solid var(--border);
+    background: white; flex-shrink: 0;
+    appearance: none; cursor: none;
+    position: relative; margin-top: 1px;
+    transition: all 0.2s;
+  }
+  .check-box:checked { background: var(--red); border-color: var(--red); }
+  .check-box:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px; top: 1px;
+    width: 6px; height: 10px;
+    border: 2px solid white;
+    border-top: none; border-left: none;
+    transform: rotate(45deg);
+  }
+  .check-label { font-size: 0.8rem; color: var(--mid-gray); line-height: 1.5; }
+  .check-label a { color: var(--red); text-decoration: none; }
+  .check-label a:hover { text-decoration: underline; }
+  .forgot-row {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 1.5rem;
+  }
+  .forgot-link {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--red); text-decoration: none;
+    letter-spacing: 1px; transition: opacity 0.2s;
+  }
+  .forgot-link:hover { opacity: 0.7; }
+  .btn-submit {
+    width: 100%;
+    font-family: var(--display);
+    font-weight: 700; font-size: 14px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: white; background: var(--red);
+    border: none; padding: 16px; cursor: none;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    position: relative; overflow: hidden;
+    transition: background 0.2s; margin-bottom: 1.5rem;
+  }
+  .btn-submit::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+  .btn-submit:hover { background: var(--red-dark); }
+  .btn-submit:hover::before { transform: translateX(100%); }
+  .or-divider {
+    display: flex; align-items: center;
+    gap: 12px; margin-bottom: 1.25rem;
+  }
+  .or-divider span {
+    font-family: var(--mono); font-size: 9px;
+    color: #bbb; letter-spacing: 2px;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .or-line { flex: 1; height: 1px; background: var(--border); }
+  .sso-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.75rem; margin-bottom: 1.5rem;
+  }
+  .btn-sso {
+    font-family: var(--display); font-weight: 600;
+    font-size: 12px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--dark-gray);
+    background: white; border: 1px solid var(--border);
+    padding: 11px 16px; cursor: none;
+    display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+    transition: all 0.2s ease;
+  }
+  .btn-sso:hover { border-color: var(--red); color: var(--red); }
+  .btn-sso svg { width: 16px; height: 16px; }
+  .switch-prompt { text-align: center; font-size: 0.825rem; color: var(--mid-gray); }
+  .switch-prompt button {
+    background: none; border: none;
+    color: var(--red); font-family: var(--display);
+    font-weight: 700; font-size: 0.875rem;
+    letter-spacing: 1px; cursor: none;
+    text-transform: uppercase; margin-left: 4px;
+    transition: opacity 0.2s;
+  }
+  .switch-prompt button:hover { opacity: 0.7; }
+  .strength-bar { display: flex; gap: 4px; margin-top: 6px; height: 3px; }
+  .strength-seg { flex: 1; background: var(--border); transition: background 0.3s; }
+  .strength-seg.active.weak   { background: #E74C3C; }
+  .strength-seg.active.medium { background: #F39C12; }
+  .strength-seg.active.strong { background: #27AE60; }
+  .strength-hint {
+    font-family: var(--mono); font-size: 9px;
+    letter-spacing: 1px; margin-top: 4px;
+    text-transform: uppercase;
+  }
+  .strength-hint.weak   { color: #E74C3C; }
+  .strength-hint.medium { color: #F39C12; }
+  .strength-hint.strong { color: #27AE60; }
+  .field-error {
+    font-family: var(--mono); font-size: 9px;
+    color: var(--red); letter-spacing: 1px;
+    margin-top: 5px; display: none;
+  }
+  .field-error.show { display: block; }
+  .reg-steps {
+    display: flex; gap: 6px;
+    margin-bottom: 1.5rem; align-items: center;
+  }
+  .reg-step-dot {
+    width: 28px; height: 4px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .reg-step-dot.done { background: var(--red); }
+  .reg-step-label {
+    font-family: var(--mono); font-size: 9px;
+    color: #aaa; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-left: auto;
+  }
+
+  /* =============================================
+     DJANGO SERVER ALERT BANNER
+     Muncul di atas form saat ada messages dari Django
+     ============================================= */
+  .server-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    margin-bottom: 1.5rem;
+    border-left: 3px solid;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    line-height: 1.6;
+    animation: alertIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    position: relative;
+    overflow: hidden;
+  }
+  @keyframes alertIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  /* Shimmer effect */
+  .server-alert::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transform: translateX(-100%);
+    animation: alertShimmer 1.2s ease 0.4s forwards;
+  }
+  @keyframes alertShimmer {
+    to { transform: translateX(100%); }
+  }
+
+  /* Success variant */
+  .server-alert.success {
+    background: rgba(39, 174, 96, 0.08);
+    border-color: #27AE60;
+    color: #1a7a3f;
+  }
+  .server-alert.success .alert-icon { color: #27AE60; }
+
+  /* Error variant */
+  .server-alert.error {
+    background: rgba(200, 16, 46, 0.07);
+    border-color: var(--red);
+    color: var(--red-dark);
+  }
+  .server-alert.error .alert-icon { color: var(--red); }
+
+  /* Warning variant */
+  .server-alert.warning {
+    background: rgba(243, 156, 18, 0.08);
+    border-color: #F39C12;
+    color: #9a620a;
+  }
+  .server-alert.warning .alert-icon { color: #F39C12; }
+
+  .alert-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    line-height: 1.6;
+  }
+  .alert-body { flex: 1; }
+  .alert-tag {
+    display: block;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    opacity: 0.7;
+  }
+  .alert-close {
+    background: none; border: none;
+    cursor: none; font-size: 14px;
+    opacity: 0.4; transition: opacity 0.2s;
+    flex-shrink: 0; line-height: 1;
+    color: inherit;
+  }
+  .alert-close:hover { opacity: 1; }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .auth-wrapper { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+    .right-panel { overflow-y: auto; align-items: flex-start; padding-top: 3rem; }
+    body { overflow: auto; }
+    .form-container { padding: 2rem 1.5rem; max-width: 100%; }
+  }
+  @media (max-width: 480px) {
+    .field-row { grid-template-columns: 1fr; }
+    .sso-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="auth-wrapper">
+
+  <!-- ===== LEFT PANEL ===== -->
+  <div class="left-panel">
+    <div class="left-watermark">MC</div>
+    <div class="left-top">
+      <a href="{% url 'home' %}" class="brand">
+        <div class="brand-mark"><span>MC</span></div>
+        <span class="brand-text">Manu<span>Core</span></span>
+      </a>
+      <h1 class="left-headline">
+        Akses<br>
+        <span class="acc">Sistem</span><br>
+        <span class="stroke">Produksi</span>
+      </h1>
+      <p class="left-sub">Platform manufaktur digital yang menghubungkan klien, admin, dan operator dalam satu ekosistem terintegrasi.</p>
+      <div class="status-cards">
+        <div class="status-card">
+          <div class="status-dot green"></div>
+          <span class="status-card-label">System Status</span>
+          <span class="status-card-val">Operational</span>
+        </div>
+        <div class="status-card">
+          <div class="status-dot red"></div>
+          <span class="status-card-label">Work Order Aktif</span>
+          <span class="status-card-val" id="woCounter">47</span>
+        </div>
+        <div class="status-card">
+          <div class="status-dot yellow"></div>
+          <span class="status-card-label">Pending Approval</span>
+          <span class="status-card-val">12</span>
+        </div>
+      </div>
+    </div>
+    <div class="left-bottom">
+      <div class="left-footer-text">© 2025 <span>ManuCore</span> Systems</div>
+      <div class="version-badge">v2.4.1</div>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT PANEL ===== -->
+  <div class="right-panel">
+    <div class="form-container">
+
+      <!-- SWITCH TABS -->
+      <div class="switch-tabs" role="tablist">
+        <div class="switch-track" id="switchTrack"></div>
+        <button class="switch-btn active" id="tabLogin"    role="tab" onclick="switchForm('login')">Masuk</button>
+        <button class="switch-btn"        id="tabRegister" role="tab" onclick="switchForm('register')">Daftar</button>
+      </div>
+
+      <!-- =============================================
+           DJANGO MESSAGES — ditampilkan di atas form
+           ============================================= -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="server-alert {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}warning{% endif %}"
+               id="serverAlert">
+            <span class="alert-icon">
+              {% if message.tags == 'success' %}✔{% elif message.tags == 'error' %}✖{% else %}⚠{% endif %}
+            </span>
+            <div class="alert-body">
+              <span class="alert-tag">
+                {% if message.tags == 'success' %}Berhasil{% elif message.tags == 'error' %}Gagal{% else %}Perhatian{% endif %}
+              </span>
+              {{ message }}
+            </div>
+            <button class="alert-close" onclick="this.parentElement.remove()" aria-label="Tutup">✕</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- FORMS AREA -->
+      <div class="forms-area" id="formsArea">
+
+        <!-- ======= LOGIN FORM ======= -->
+        <div class="form-panel login-panel" id="loginPanel">
+          <div class="form-header">
+            <div class="form-label-tag">Autentikasi</div>
+            <h2 class="form-title">Selamat<br><span class="acc">Datang</span></h2>
+            <p class="form-desc">Masuk ke dashboard produksi Anda dengan kredensial yang terdaftar.</p>
+          </div>
+          <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="field-group">
+              <label class="field-label">Email / ID Karyawan</label>
+              <div class="field-wrap">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                </span>
+                <input class="field-input" type="text" name="username" id="loginEmail" placeholder="nama@perusahaan.com">
+                <div class="field-line"></div>
+              </div>
+              <div class="field-error" id="loginEmailErr">Format email tidak valid</div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Password</label>
+              <div class="field-wrap">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                </span>
+                <input class="field-input" type="password" name="password" id="loginPass" placeholder="Masukkan password">
+                <button type="button" class="eye-toggle" onclick="toggleEye('loginPass', this)" aria-label="Toggle password">
+                  <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </button>
+                <div class="field-line"></div>
+              </div>
+            </div>
+            <div class="forgot-row">
+              <label class="check-group" style="margin:0">
+                <input type="checkbox" class="check-box">
+                <span class="check-label">Ingat saya</span>
+              </label>
+              <a href="#" class="forgot-link">Lupa Password?</a>
+            </div>
+           <button type="submit" class="btn-submit">Masuk ke Sistem →</button>
+            <div class="or-divider">
+              <div class="or-line"></div>
+              <span>atau masuk dengan</span>
+              <div class="or-line"></div>
+            </div>
+            <div class="sso-row">
+              <button class="btn-sso" type="button">
+                <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Google
+              </button>
+              <button class="btn-sso" type="button">
+                <svg viewBox="0 0 24 24" fill="#0078D4"><path d="M11.4 24H0V12.6L11.4 24zM12.6 24H24V12.6L12.6 24zM0 11.4V0h11.4L0 11.4zM12.6 0H24v11.4L12.6 0z"/></svg>
+                Microsoft
+              </button>
+            </div>
+            <div class="switch-prompt">
+              Belum punya akun?
+              <button type="button" onclick="switchForm('register')">Daftar Sekarang</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ======= REGISTER FORM ======= -->
+        <div class="form-panel register-panel" id="registerPanel">
+          <div class="form-header">
+            <div class="form-label-tag">Registrasi Baru</div>
+            <h2 class="form-title">Buat<br><span class="acc">Akun</span></h2>
+            <p class="form-desc">Isi data diri dan perusahaan untuk mendapatkan akses ke sistem ManuCore.</p>
+          </div>
+          <div class="reg-steps">
+            <div class="reg-step-dot done" id="rdot1"></div>
+            <div class="reg-step-dot" id="rdot2"></div>
+            <div class="reg-step-dot" id="rdot3"></div>
+            <div class="reg-step-dot" id="rdot4"></div>
+            <span class="reg-step-label" id="regStepLabel">Langkah 1 / 4</span>
+          </div>
+          <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            <div class="field-row">
+              <div class="field-group">
+                <label class="field-label">Nama Depan</label>
+                <div class="field-wrap">
+                  <span class="field-icon"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+                  <input class="field-input" type="text" placeholder="Budi" id="regFirst" name="nama_depan" required>
+                  <div class="field-line"></div>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Nama Belakang</label>
+                <div class="field-wrap">
+                  <span class="field-icon"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+                  <input class="field-input" type="text" placeholder="Santoso" id="regLast" name="nama_belakang" required>
+                  <div class="field-line"></div>
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Alamat Email</label>
+              <div class="field-wrap">
+                <span class="field-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></span>
+                <input class="field-input" type="email" placeholder="budi@perusahaan.com" id="regEmail" name="email" oninput="updateStep()" required>
+                <div class="field-line"></div>
+              </div>
+              <div class="field-error" id="regEmailErr">Format email tidak valid</div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Nama Perusahaan</label>
+              <div class="field-wrap">
+                <span class="field-icon"><svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg></span>
+                <input class="field-input" type="text" placeholder="PT. Industri Nusantara" id="regCompany" name="company_name" oninput="updateStep()" required>
+                <div class="field-line"></div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Password</label>
+              <div class="field-wrap">
+                <span class="field-icon"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg></span>
+                <input class="field-input" type="password" placeholder="Min. 8 karakter" id="regPass" name="password" oninput="checkStrength(this.value)" required>
+                <button type="button" class="eye-toggle" onclick="toggleEye('regPass', this)" aria-label="Toggle password">
+                  <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </button>
+                <div class="field-line"></div>
+              </div>
+              <div class="strength-bar" id="strengthBar">
+                <div class="strength-seg" id="s1"></div>
+                <div class="strength-seg" id="s2"></div>
+                <div class="strength-seg" id="s3"></div>
+                <div class="strength-seg" id="s4"></div>
+              </div>
+              <div class="strength-hint" id="strengthHint"></div>
+            </div>
+            <div class="check-group">
+              <input type="checkbox" class="check-box" id="agreeTerms" onchange="updateStep()" required>
+              <label class="check-label" for="agreeTerms">
+                Saya menyetujui <a href="#">Syarat &amp; Ketentuan</a> serta <a href="#">Kebijakan Privasi</a> ManuCore
+              </label>
+            </div>
+            <button type="submit" class="btn-submit">Buat Akun →</button>
+            <div class="switch-prompt">
+              Sudah punya akun?
+              <button type="button" onclick="switchForm('login')">Masuk Sekarang</button>
+            </div>
+          </form>
+        </div>
+
+      </div><!-- /forms-area -->
+    </div><!-- /form-container -->
+  </div><!-- /right-panel -->
+</div><!-- /auth-wrapper -->
+
+<!-- JS Toast (untuk validasi sisi klien) -->
+<div id="toast" style="
+  position: fixed; bottom: 2rem; right: 2rem;
+  background: var(--dark); color: var(--off-white);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px;
+  padding: 14px 20px; border-left: 3px solid var(--red);
+  transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  z-index: 9000; max-width: 300px; line-height: 1.5;
+"></div>
+
+<script>
+  // ======= CURSOR =======
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top  = my + 'px';
+  });
+  document.addEventListener('mouseover', e => {
+    if (e.target.matches('a, button, input, select, label, .switch-btn, .check-box')) {
+      ring.classList.add('hovered');
+    }
+  });
+  document.addEventListener('mouseout', e => {
+    if (e.target.matches('a, button, input, select, label, .switch-btn, .check-box')) {
+      ring.classList.remove('hovered');
+    }
+  });
+  (function animRing() {
+    rx += (mx - rx) * 0.13;
+    ry += (my - ry) * 0.13;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+
+  // ======= SWITCH FORM =======
+  const track = document.getElementById('switchTrack');
+  const tabL  = document.getElementById('tabLogin');
+  const tabR  = document.getElementById('tabRegister');
+  const area  = document.getElementById('formsArea');
+
+  function switchForm(mode) {
+    if (mode === 'register') {
+      track.classList.add('right');
+      tabL.classList.remove('active');
+      tabR.classList.add('active');
+      area.classList.add('show-register');
+      document.querySelector('.right-panel').scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      track.classList.remove('right');
+      tabL.classList.add('active');
+      tabR.classList.remove('active');
+      area.classList.remove('show-register');
+      document.querySelector('.right-panel').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // ======= AUTO-OPEN FORM BERDASARKAN CONTEXT DARI DJANGO =======
+  // Jika Django mengirim open_register=True (misal saat error register),
+  // buka otomatis tab register
+  {% if open_register %}
+    document.addEventListener('DOMContentLoaded', () => switchForm('register'));
+  {% endif %}
+
+  // ======= AUTO-DISMISS SERVER ALERT =======
+  // Alert server otomatis hilang setelah 6 detik
+  document.addEventListener('DOMContentLoaded', () => {
+    const alerts = document.querySelectorAll('.server-alert');
+    alerts.forEach(alert => {
+      setTimeout(() => {
+        alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        alert.style.opacity    = '0';
+        alert.style.transform  = 'translateY(-8px)';
+        setTimeout(() => alert.remove(), 500);
+      }, 6000);
+    });
+  });
+
+  // ======= EYE TOGGLE =======
+  function toggleEye(id, btn) {
+    const inp = document.getElementById(id);
+    const isPass = inp.type === 'password';
+    inp.type = isPass ? 'text' : 'password';
+    btn.querySelector('svg').innerHTML = isPass
+      ? '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>'
+      : '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>';
+  }
+
+  // ======= PASSWORD STRENGTH =======
+  function checkStrength(val) {
+    const segs = [document.getElementById('s1'), document.getElementById('s2'), document.getElementById('s3'), document.getElementById('s4')];
+    const hint = document.getElementById('strengthHint');
+    let score = 0;
+    if (val.length >= 8)           score++;
+    if (/[A-Z]/.test(val))         score++;
+    if (/[0-9]/.test(val))         score++;
+    if (/[^A-Za-z0-9]/.test(val))  score++;
+    const levels = ['', 'weak', 'medium', 'medium', 'strong'];
+    const labels = { weak: 'Lemah', medium: 'Sedang', strong: 'Kuat' };
+    const lv = levels[score] || '';
+    segs.forEach((s, i) => {
+      s.className = 'strength-seg' + (i < score ? ' active ' + lv : '');
+    });
+    hint.className   = 'strength-hint ' + lv;
+    hint.textContent = lv ? '● ' + labels[lv] : '';
+    updateStep();
+  }
+
+  // ======= REGISTER STEP TRACKER =======
+  function updateStep() {
+    const email   = document.getElementById('regEmail').value;
+    const company = document.getElementById('regCompany').value;
+    const pass    = document.getElementById('regPass').value;
+    let done = 1;
+    if (email && /\S+@\S+\.\S+/.test(email)) done = 2;
+    if (done >= 2 && company)                 done = 3;
+    if (done >= 3 && pass.length >= 8)        done = 4;
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById('rdot' + i).className = 'reg-step-dot' + (i <= done ? ' done' : '');
+    }
+    document.getElementById('regStepLabel').textContent = 'Langkah ' + done + ' / 4';
+  }
+
+  // ======= TOAST (client-side) =======
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent     = msg;
+    t.style.transform = 'translateX(0)';
+    setTimeout(() => { t.style.transform = 'translateX(120%)'; }, 3500);
+  }
+
+  // ======= HANDLE LOGIN (client-side validation) =======
+  function handleLogin() {
+    const email    = document.getElementById('loginEmail').value;
+    const pass     = document.getElementById('loginPass').value;
+    const emailErr = document.getElementById('loginEmailErr');
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      emailErr.classList.add('show');
+      document.getElementById('loginEmail').focus();
+      return;
+    }
+    emailErr.classList.remove('show');
+    if (!pass) { showToast('⚠ Password tidak boleh kosong'); return; }
+    const btn = document.querySelector('#loginPanel .btn-submit');
+    btn.textContent   = 'Memverifikasi...';
+    btn.style.opacity = '0.7';
+    setTimeout(() => {
+      btn.textContent   = 'Masuk ke Sistem →';
+      btn.style.opacity = '1';
+      showToast('✔ Login berhasil — Mengarahkan ke dashboard...');
+    }, 1800);
+  }
+
+  // ======= LIVE WO COUNTER =======
+  let woVal = 47;
+  setInterval(() => {
+    woVal += Math.random() > 0.5 ? 1 : -1;
+    woVal  = Math.max(40, Math.min(55, woVal));
+    document.getElementById('woCounter').textContent = woVal;
+  }, 3000);
+</script>
+</body>
+</html>
