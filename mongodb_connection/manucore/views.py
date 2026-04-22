@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from datetime import datetime
 from .db_connection import clients_collection, users_collection
+from .models import StaffUser
+from bson import ObjectId
 
 
 def landing_page(request):
@@ -13,7 +15,14 @@ def login_view(request):
     return render(request, 'Auth/index.html')
 
 def admin_page(request):
-    return render(request, "admin/admin.html")
+    users = list(users_collection.find())
+
+    for u in users:
+        u['id'] = str(u['_id'])
+
+    return render(request, "admin/admin.html", {
+        "users": users
+    })
 
 def operator_page(request):
     return render(request, "operator/operator.html")
@@ -101,3 +110,39 @@ def login_process(request):
         })
 
     return render(request, "Auth/index.html")
+
+
+def user_list(request):
+    users = list(users_collection.find())
+    return render(request, 'admin/admin.html', {'users': users})
+
+
+def user_create(request):
+    if request.method == "POST":
+        data = {
+            "username": request.POST.get("username"),
+            "password": make_password(request.POST.get("password")),
+            "role": request.POST.get("role"),
+            "created_at": datetime.now()
+        }
+        users_collection.insert_one(data)
+
+    return redirect("admin_page")
+
+
+def user_update(request, id):
+    if request.method == "POST":
+        users_collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {
+                "username": request.POST.get("username"),
+                "password": make_password(request.POST.get("password")),
+                "role": request.POST.get("role"),
+            }}
+        )
+
+    return redirect("admin_page")
+
+def user_delete(request, id):
+    users_collection.delete_one({"_id": ObjectId(id)})
+    return redirect("admin_page")

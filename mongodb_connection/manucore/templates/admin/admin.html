@@ -1,11 +1,1689 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>INI HALMAAN ADMIN</h1>
-</body>
+{% load static %}
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ManuCore — Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'admin/style.css' %}" />
+  </head>
+  <body>
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+    <div class="shell">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <a href="#" class="sidebar-brand">
+          <div class="brand-mark"><span>MC</span></div>
+          <span class="brand-txt">Manu<em>Core</em></span>
+        </a>
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">Menu Utama</div>
+          <a
+            href="#"
+            class="nav-item active"
+            onclick="
+              goto('dashboard', this);
+              return false;
+            "
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"
+              /></svg
+            >Dashboard
+          </a>
+          <a
+            href="#"
+            class="nav-item"
+            onclick="
+              goto('requests', this);
+              return false;
+            "
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"
+              /></svg
+            >Requests
+            <span class="nav-badge">5</span>
+          </a>
+          <a
+            href="#"
+            class="nav-item"
+            onclick="
+              goto('workorders', this);
+              return false;
+            "
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"
+              /></svg
+            >Work Orders
+          </a>
+          <div class="nav-section-label" style="margin-top: 1.5rem">Data</div>
+          <a
+            href="#"
+            class="nav-item"
+            onclick="
+              goto('users', this);
+              return false;
+            "
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
+              /></svg
+            >Users
+          </a>
+          <a
+            href="#"
+            class="nav-item"
+            onclick="
+              goto('clients', this);
+              return false;
+            "
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"
+              /></svg
+            >Clients
+          </a>
+          <div class="nav-section-label" style="margin-top: 1.5rem">
+            Produksi
+          </div>
+          <a
+            href="#"
+            class="nav-item"
+            onclick="
+              goto('prodlog', this);
+              return false;
+            "
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"
+              /></svg
+            >Production Log
+          </a>
+          <a
+            href="#"
+            class="nav-item"
+            onclick="
+              goto('rejectlog', this);
+              return false;
+            "
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"
+              /></svg
+            >Reject Logs
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="sb-user">
+            <div class="sb-avatar">AF</div>
+            <div class="sb-info">
+              <div class="sb-name">Ahmad Fauzi</div>
+              <div class="sb-role">Super Admin</div>
+            </div>
+            <button class="sb-logout">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <div class="main">
+        <header class="topbar">
+          <div class="topbar-bc">
+            <span class="bc-item">ManuCore</span>
+            <span class="bc-sep">›</span>
+            <span class="bc-item">Admin</span>
+            <span class="bc-sep">›</span>
+            <span class="bc-item cur" id="bcCur">Dashboard</span>
+          </div>
+          <div class="topbar-right">
+            <span class="tb-clock" id="clock">--:--:--</span>
+            <div class="tb-pill"><span class="dot"></span>Sistem Online</div>
+            <div class="tb-notif">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+                />
+              </svg>
+              <div class="tb-ndot"></div>
+            </div>
+          </div>
+        </header>
+
+        <div class="content" id="content">
+          <!-- ======== PAGE: DASHBOARD ======== -->
+          <div id="p-dashboard">
+            <div class="pg-header">
+              <div>
+                <div class="pg-eyebrow">Overview</div>
+                <h1 class="pg-title">Admin <em>Dashboard</em></h1>
+                <p class="pg-sub">
+                  Ringkasan operasional sistem manufaktur ManuCore secara
+                  real-time.
+                </p>
+              </div>
+              <button class="btn primary" onclick="goto('requests', null)">
+                Lihat Requests →
+              </button>
+            </div>
+
+            <div class="stat-grid">
+              <div class="stat-card accent">
+                <div class="sc-hdr">
+                  <span class="sc-label">Total Requests</span>
+                  <div class="sc-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div class="sc-val" data-count="38">38<em> req</em></div>
+                <div class="sc-foot">
+                  <span class="sc-sub">Semua request masuk</span>
+                </div>
+                <div class="sc-subrow">
+                  <div class="sc-subitem">
+                    <div class="sc-subnum amber">5</div>
+                    <div class="sc-sublabel">Pending</div>
+                  </div>
+                  <div class="sc-subitem">
+                    <div class="sc-subnum green">28</div>
+                    <div class="sc-sublabel">Approved</div>
+                  </div>
+                  <div class="sc-subitem">
+                    <div class="sc-subnum red">5</div>
+                    <div class="sc-sublabel">Rejected</div>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="sc-hdr">
+                  <span class="sc-label">Work Orders</span>
+                  <div class="sc-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div class="sc-val" data-count="24">24</div>
+                <div class="sc-foot">
+                  <span class="sc-sub">Total work order</span
+                  ><span class="pill up">9 Aktif</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="sc-hdr">
+                  <span class="sc-label">Total Produksi</span>
+                  <div class="sc-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div class="sc-val" data-count="1840">1840<em> unit</em></div>
+                <div class="sc-foot">
+                  <span class="sc-sub">Dari Production Log</span
+                  ><span class="pill up">↑ On Track</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="sc-hdr">
+                  <span class="sc-label">Total Reject</span>
+                  <div class="sc-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div class="sc-val" data-count="73">73<em> unit</em></div>
+                <div class="sc-foot">
+                  <span class="sc-sub">Dari Reject Logs</span
+                  ><span class="pill down">3.9% Rate</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="split">
+              <div class="panel">
+                <div class="panel-hdr">
+                  <span class="panel-title">Produksi 7 Hari Terakhir</span
+                  ><span class="pill neutral">Unit / Hari</span>
+                </div>
+                <div
+                  style="
+                    padding: 1.25rem 1.25rem 0;
+                    font-family: var(--mono);
+                    font-size: 9px;
+                    color: var(--light-gray);
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                  "
+                >
+                  Total periode: 1.840 unit
+                </div>
+                <div class="chart-bars">
+                  <div class="bar-wrap">
+                    <div class="bar" style="height: 60px">
+                      <div class="bar-fill" style="height: 55%"></div>
+                    </div>
+                    <span class="bar-label">Sen</span>
+                  </div>
+                  <div class="bar-wrap">
+                    <div class="bar" style="height: 60px">
+                      <div class="bar-fill" style="height: 75%"></div>
+                    </div>
+                    <span class="bar-label">Sel</span>
+                  </div>
+                  <div class="bar-wrap">
+                    <div class="bar" style="height: 60px">
+                      <div class="bar-fill" style="height: 40%"></div>
+                    </div>
+                    <span class="bar-label">Rab</span>
+                  </div>
+                  <div class="bar-wrap">
+                    <div class="bar" style="height: 60px">
+                      <div class="bar-fill" style="height: 90%"></div>
+                    </div>
+                    <span class="bar-label">Kam</span>
+                  </div>
+                  <div class="bar-wrap">
+                    <div class="bar" style="height: 60px">
+                      <div class="bar-fill" style="height: 65%"></div>
+                    </div>
+                    <span class="bar-label">Jum</span>
+                  </div>
+                  <div class="bar-wrap">
+                    <div class="bar" style="height: 60px">
+                      <div class="bar-fill" style="height: 30%"></div>
+                    </div>
+                    <span class="bar-label">Sab</span>
+                  </div>
+                  <div class="bar-wrap">
+                    <div class="bar" style="height: 60px">
+                      <div class="bar-fill" style="height: 20%"></div>
+                    </div>
+                    <span class="bar-label">Min</span>
+                  </div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-hdr">
+                  <span class="panel-title">Aktivitas Terbaru</span
+                  ><a href="#" class="sec-link" style="font-size: 9px">Semua</a>
+                </div>
+                <div class="act-list">
+                  <div class="act-item">
+                    <div class="act-dot-w">
+                      <div class="act-dot green"></div>
+                      <div class="act-line"></div>
+                    </div>
+                    <div class="act-body">
+                      <div class="act-text">
+                        Request <strong>#REQ-038</strong> dari PT. Maju Jaya
+                        telah <strong>disetujui</strong>
+                      </div>
+                      <div class="act-time">2 menit lalu</div>
+                    </div>
+                  </div>
+                  <div class="act-item">
+                    <div class="act-dot-w">
+                      <div class="act-dot amber"></div>
+                      <div class="act-line"></div>
+                    </div>
+                    <div class="act-body">
+                      <div class="act-text">
+                        Work Order <strong>#WO-024</strong> ditugaskan ke
+                        <strong>Budi Santoso</strong>
+                      </div>
+                      <div class="act-time">14 menit lalu</div>
+                    </div>
+                  </div>
+                  <div class="act-item">
+                    <div class="act-dot-w">
+                      <div class="act-dot red"></div>
+                      <div class="act-line"></div>
+                    </div>
+                    <div class="act-body">
+                      <div class="act-text">
+                        Reject Log baru: <strong>12 unit</strong> gagal QC pada
+                        WO #WO-019
+                      </div>
+                      <div class="act-time">31 menit lalu</div>
+                    </div>
+                  </div>
+                  <div class="act-item">
+                    <div class="act-dot-w">
+                      <div class="act-dot blue"></div>
+                      <div class="act-line"></div>
+                    </div>
+                    <div class="act-body">
+                      <div class="act-text">
+                        Client baru
+                        <strong>PT. Teknik Sejahtera</strong> berhasil mendaftar
+                      </div>
+                      <div class="act-time">1 jam lalu</div>
+                    </div>
+                  </div>
+                  <div class="act-item">
+                    <div class="act-dot-w">
+                      <div class="act-dot green"></div>
+                    </div>
+                    <div class="act-body">
+                      <div class="act-text">
+                        Production Log WO-021 selesai:
+                        <strong>80 unit</strong> diproduksi
+                      </div>
+                      <div class="act-time">2 jam lalu</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec-hdr">
+              <span class="sec-title">Request Terbaru</span
+              ><a
+                href="#"
+                class="sec-link"
+                onclick="
+                  goto('requests', null);
+                  return false;
+                "
+                >Lihat Semua</a
+              >
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">Requests</span
+                  ><span class="tbl-count">5 entri</span>
+                </div>
+                <div class="tbl-bar-r">
+                  <input
+                    class="tbl-search"
+                    type="text"
+                    placeholder="Cari request..."
+                    oninput="ft(this, 't1')"
+                  />
+                </div>
+              </div>
+              <table id="t1">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Produk</th>
+                    <th>Client</th>
+                    <th>Qty</th>
+                    <th>Status</th>
+                    <th>Tanggal</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">REQ-038</td>
+                    <td class="td-name">Bracket Besi A3</td>
+                    <td class="td-mono">PT. Maju Jaya</td>
+                    <td class="td-mono">500</td>
+                    <td><span class="badge approved">Approved</span></td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-037</td>
+                    <td class="td-name">Gear Reducer M8</td>
+                    <td class="td-mono">PT. Karya Teknik</td>
+                    <td class="td-mono">120</td>
+                    <td><span class="badge pending">Pending</span></td>
+                    <td class="td-mono">21/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Approve</button
+                        ><button class="btn danger">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-036</td>
+                    <td class="td-name">Plat Baja 10mm</td>
+                    <td class="td-mono">CV. Industri Mas</td>
+                    <td class="td-mono">80</td>
+                    <td><span class="badge pending">Pending</span></td>
+                    <td class="td-mono">20/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Approve</button
+                        ><button class="btn danger">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-035</td>
+                    <td class="td-name">Shaft Custom Ø32</td>
+                    <td class="td-mono">PT. Teknik Sejahtera</td>
+                    <td class="td-mono">60</td>
+                    <td><span class="badge rejected">Rejected</span></td>
+                    <td class="td-mono">19/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-034</td>
+                    <td class="td-name">Bushing Kuningan</td>
+                    <td class="td-mono">PT. Maju Jaya</td>
+                    <td class="td-mono">1000</td>
+                    <td><span class="badge approved">Approved</span></td>
+                    <td class="td-mono">18/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="sec-hdr">
+              <span class="sec-title">Work Order Aktif</span
+              ><a
+                href="#"
+                class="sec-link"
+                onclick="
+                  goto('workorders', null);
+                  return false;
+                "
+                >Lihat Semua</a
+              >
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">Work Orders</span
+                  ><span class="tbl-count">5 aktif</span>
+                </div>
+                <div class="tbl-bar-r">
+                  <input
+                    class="tbl-search"
+                    type="text"
+                    placeholder="Cari WO..."
+                    oninput="ft(this, 't2')"
+                  />
+                </div>
+              </div>
+              <table id="t2">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Produk</th>
+                    <th>Qty</th>
+                    <th>Operator</th>
+                    <th>Status</th>
+                    <th>Mulai</th>
+                    <th>Selesai</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">WO-024</td>
+                    <td class="td-name">Bracket Besi A3</td>
+                    <td class="td-mono">500</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge active">Active</span></td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td class="td-mono">30/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Update</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-023</td>
+                    <td class="td-name">Gear Reducer M8</td>
+                    <td class="td-mono">120</td>
+                    <td class="td-mono">—</td>
+                    <td><span class="badge paused">Paused</span></td>
+                    <td class="td-mono">20/04/2025</td>
+                    <td class="td-mono">28/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Assign</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-022</td>
+                    <td class="td-name">Bushing Kuningan</td>
+                    <td class="td-mono">1000</td>
+                    <td class="td-mono">Andi Wijaya</td>
+                    <td><span class="badge active">Active</span></td>
+                    <td class="td-mono">18/04/2025</td>
+                    <td class="td-mono">25/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Update</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-021</td>
+                    <td class="td-name">Plat Baja 10mm</td>
+                    <td class="td-mono">80</td>
+                    <td class="td-mono">Reza Pratama</td>
+                    <td><span class="badge done">Done</span></td>
+                    <td class="td-mono">15/04/2025</td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-020</td>
+                    <td class="td-name">Shaft Custom Ø32</td>
+                    <td class="td-mono">60</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge active">Active</span></td>
+                    <td class="td-mono">14/04/2025</td>
+                    <td class="td-mono">24/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Update</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="split">
+              <div>
+                <div class="sec-hdr">
+                  <span class="sec-title">Client Terbaru</span
+                  ><a
+                    href="#"
+                    class="sec-link"
+                    onclick="
+                      goto('clients', null);
+                      return false;
+                    "
+                    >Semua</a
+                  >
+                </div>
+                <div class="tbl-wrap" style="margin-bottom: 0">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nama</th>
+                        <th>Perusahaan</th>
+                        <th>Daftar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="td-name" style="font-size: 12px">
+                          Hendra Kusuma
+                        </td>
+                        <td class="td-mono">PT. Teknik Sejahtera</td>
+                        <td class="td-mono">21/04/2025</td>
+                      </tr>
+                      <tr>
+                        <td class="td-name" style="font-size: 12px">
+                          Siti Rahayu
+                        </td>
+                        <td class="td-mono">CV. Industri Mas</td>
+                        <td class="td-mono">18/04/2025</td>
+                      </tr>
+                      <tr>
+                        <td class="td-name" style="font-size: 12px">
+                          Agus Firmansyah
+                        </td>
+                        <td class="td-mono">PT. Maju Jaya</td>
+                        <td class="td-mono">10/04/2025</td>
+                      </tr>
+                      <tr>
+                        <td class="td-name" style="font-size: 12px">
+                          Dewi Lestari
+                        </td>
+                        <td class="td-mono">PT. Karya Teknik</td>
+                        <td class="td-mono">05/04/2025</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <div class="sec-hdr">
+                  <span class="sec-title">Reject Log Terbaru</span
+                  ><a
+                    href="#"
+                    class="sec-link"
+                    onclick="
+                      goto('rejectlog', null);
+                      return false;
+                    "
+                    >Semua</a
+                  >
+                </div>
+                <div class="tbl-wrap" style="margin-bottom: 0">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>WO ID</th>
+                        <th>Qty</th>
+                        <th>Alasan</th>
+                        <th>Tgl</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="td-mono">WO-024</td>
+                        <td><span class="badge rejected">12</span></td>
+                        <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                          Dimensi tidak sesuai
+                        </td>
+                        <td class="td-mono">22/04/2025</td>
+                      </tr>
+                      <tr>
+                        <td class="td-mono">WO-022</td>
+                        <td><span class="badge rejected">8</span></td>
+                        <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                          Cacat permukaan
+                        </td>
+                        <td class="td-mono">21/04/2025</td>
+                      </tr>
+                      <tr>
+                        <td class="td-mono">WO-019</td>
+                        <td><span class="badge rejected">5</span></td>
+                        <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                          Material retak
+                        </td>
+                        <td class="td-mono">17/04/2025</td>
+                      </tr>
+                      <tr>
+                        <td class="td-mono">WO-017</td>
+                        <td><span class="badge rejected">15</span></td>
+                        <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                          Toleransi melebihi batas
+                        </td>
+                        <td class="td-mono">14/04/2025</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec-hdr" style="margin-top: 2rem">
+              <span class="sec-title">Production Log Terbaru</span
+              ><a
+                href="#"
+                class="sec-link"
+                onclick="
+                  goto('prodlog', null);
+                  return false;
+                "
+                >Lihat Semua</a
+              >
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">Production Log</span
+                  ><span class="tbl-count">5 entri</span>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>WO ID</th>
+                    <th>Operator</th>
+                    <th>Qty Done</th>
+                    <th>Tanggal</th>
+                    <th>Catatan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">WO-024</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge approved">240 unit</span></td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Progress 48% dari target
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-022</td>
+                    <td class="td-mono">Andi Wijaya</td>
+                    <td><span class="badge approved">380 unit</span></td>
+                    <td class="td-mono">21/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Sesuai jadwal
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-021</td>
+                    <td class="td-mono">Reza Pratama</td>
+                    <td><span class="badge approved">80 unit</span></td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Selesai tepat waktu
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-020</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge approved">45 unit</span></td>
+                    <td class="td-mono">20/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">—</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-019</td>
+                    <td class="td-mono">Andi Wijaya</td>
+                    <td><span class="badge approved">163 unit</span></td>
+                    <td class="td-mono">19/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Ada 12 unit reject QC
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- /p-dashboard -->
+
+          <!-- ======== PAGE: REQUESTS ======== -->
+          <div id="p-requests" style="display: none">
+            <div class="pg-header">
+              <div>
+                <div class="pg-eyebrow">Manajemen</div>
+                <h1 class="pg-title">Request <em>Produk</em></h1>
+                <p class="pg-sub">
+                  Daftar semua permintaan produksi dari client.
+                </p>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">All Requests</span
+                  ><span class="tbl-count">10 entri</span>
+                </div>
+                <div class="tbl-bar-r">
+                  <input
+                    class="tbl-search"
+                    type="text"
+                    placeholder="Cari..."
+                    oninput="ft(this, 't-req')"
+                  />
+                </div>
+              </div>
+              <table id="t-req">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Produk</th>
+                    <th>Client</th>
+                    <th>Qty</th>
+                    <th>File Gambar</th>
+                    <th>Status</th>
+                    <th>Dibuat</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">REQ-038</td>
+                    <td class="td-name">Bracket Besi A3</td>
+                    <td class="td-mono">PT. Maju Jaya</td>
+                    <td class="td-mono">500</td>
+                    <td class="td-mono">bracket_a3.dwg</td>
+                    <td><span class="badge approved">Approved</span></td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-037</td>
+                    <td class="td-name">Gear Reducer M8</td>
+                    <td class="td-mono">PT. Karya Teknik</td>
+                    <td class="td-mono">120</td>
+                    <td class="td-mono">gear_m8.pdf</td>
+                    <td><span class="badge pending">Pending</span></td>
+                    <td class="td-mono">21/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Approve</button
+                        ><button class="btn danger">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-036</td>
+                    <td class="td-name">Plat Baja 10mm</td>
+                    <td class="td-mono">CV. Industri Mas</td>
+                    <td class="td-mono">80</td>
+                    <td class="td-mono">spec_plat.pdf</td>
+                    <td><span class="badge pending">Pending</span></td>
+                    <td class="td-mono">20/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Approve</button
+                        ><button class="btn danger">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-035</td>
+                    <td class="td-name">Shaft Custom Ø32</td>
+                    <td class="td-mono">PT. Teknik Sejahtera</td>
+                    <td class="td-mono">60</td>
+                    <td class="td-mono">shaft_32.dwg</td>
+                    <td><span class="badge rejected">Rejected</span></td>
+                    <td class="td-mono">19/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-034</td>
+                    <td class="td-name">Bushing Kuningan</td>
+                    <td class="td-mono">PT. Maju Jaya</td>
+                    <td class="td-mono">1000</td>
+                    <td class="td-mono">bushing_spec.pdf</td>
+                    <td><span class="badge approved">Approved</span></td>
+                    <td class="td-mono">18/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-033</td>
+                    <td class="td-name">Nozzle Stainless</td>
+                    <td class="td-mono">PT. Karya Teknik</td>
+                    <td class="td-mono">200</td>
+                    <td class="td-mono">nozzle.dwg</td>
+                    <td><span class="badge approved">Approved</span></td>
+                    <td class="td-mono">16/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-032</td>
+                    <td class="td-name">Cam Follower</td>
+                    <td class="td-mono">CV. Industri Mas</td>
+                    <td class="td-mono">50</td>
+                    <td class="td-mono">cam_spec.pdf</td>
+                    <td><span class="badge pending">Pending</span></td>
+                    <td class="td-mono">15/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Approve</button
+                        ><button class="btn danger">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-031</td>
+                    <td class="td-name">Flange DN100</td>
+                    <td class="td-mono">PT. Maju Jaya</td>
+                    <td class="td-mono">300</td>
+                    <td class="td-mono">flange_dn100.dwg</td>
+                    <td><span class="badge approved">Approved</span></td>
+                    <td class="td-mono">12/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-030</td>
+                    <td class="td-name">Sprocket 40B</td>
+                    <td class="td-mono">PT. Teknik Sejahtera</td>
+                    <td class="td-mono">150</td>
+                    <td class="td-mono">sprocket.pdf</td>
+                    <td><span class="badge pending">Pending</span></td>
+                    <td class="td-mono">10/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Approve</button
+                        ><button class="btn danger">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">REQ-029</td>
+                    <td class="td-name">Bearing Housing</td>
+                    <td class="td-mono">PT. Karya Teknik</td>
+                    <td class="td-mono">75</td>
+                    <td class="td-mono">housing.dwg</td>
+                    <td><span class="badge rejected">Rejected</span></td>
+                    <td class="td-mono">08/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ======== PAGE: WORK ORDERS ======== -->
+          <div id="p-workorders" style="display: none">
+            <div class="pg-header">
+              <div>
+                <div class="pg-eyebrow">Produksi</div>
+                <h1 class="pg-title">Work <em>Orders</em></h1>
+                <p class="pg-sub">
+                  Manajemen work order dan penugasan operator.
+                </p>
+              </div>
+              <button class="btn primary">+ Buat WO</button>
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">Work Orders</span
+                  ><span class="tbl-count">8 entri</span>
+                </div>
+                <div class="tbl-bar-r">
+                  <input
+                    class="tbl-search"
+                    type="text"
+                    placeholder="Cari WO..."
+                    oninput="ft(this, 't-wo')"
+                  />
+                </div>
+              </div>
+              <table id="t-wo">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Produk</th>
+                    <th>Qty</th>
+                    <th>Operator</th>
+                    <th>Status</th>
+                    <th>Mulai</th>
+                    <th>Selesai</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">WO-024</td>
+                    <td class="td-name">Bracket Besi A3</td>
+                    <td class="td-mono">500</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge active">Active</span></td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td class="td-mono">30/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Update</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-023</td>
+                    <td class="td-name">Gear Reducer M8</td>
+                    <td class="td-mono">120</td>
+                    <td class="td-mono">—</td>
+                    <td><span class="badge paused">Paused</span></td>
+                    <td class="td-mono">20/04/2025</td>
+                    <td class="td-mono">28/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Assign</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-022</td>
+                    <td class="td-name">Bushing Kuningan</td>
+                    <td class="td-mono">1000</td>
+                    <td class="td-mono">Andi Wijaya</td>
+                    <td><span class="badge active">Active</span></td>
+                    <td class="td-mono">18/04/2025</td>
+                    <td class="td-mono">25/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Update</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-021</td>
+                    <td class="td-name">Plat Baja 10mm</td>
+                    <td class="td-mono">80</td>
+                    <td class="td-mono">Reza Pratama</td>
+                    <td><span class="badge done">Done</span></td>
+                    <td class="td-mono">15/04/2025</td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-020</td>
+                    <td class="td-name">Shaft Custom Ø32</td>
+                    <td class="td-mono">60</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge active">Active</span></td>
+                    <td class="td-mono">14/04/2025</td>
+                    <td class="td-mono">24/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Update</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-019</td>
+                    <td class="td-name">Nozzle Stainless</td>
+                    <td class="td-mono">200</td>
+                    <td class="td-mono">Andi Wijaya</td>
+                    <td><span class="badge done">Done</span></td>
+                    <td class="td-mono">10/04/2025</td>
+                    <td class="td-mono">18/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-018</td>
+                    <td class="td-name">Flange DN100</td>
+                    <td class="td-mono">300</td>
+                    <td class="td-mono">Reza Pratama</td>
+                    <td><span class="badge active">Active</span></td>
+                    <td class="td-mono">08/04/2025</td>
+                    <td class="td-mono">20/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Update</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-017</td>
+                    <td class="td-name">Cam Follower</td>
+                    <td class="td-mono">50</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge paused">Paused</span></td>
+                    <td class="td-mono">05/04/2025</td>
+                    <td class="td-mono">15/04/2025</td>
+                    <td>
+                      <div class="td-act">
+                        <button class="btn ghost">Detail</button
+                        ><button class="btn primary">Update</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ======== PAGE: USERS ======== -->
+          <div id="p-users" style="display: none">
+            <div class="pg-header">
+              <div>
+                <div class="pg-eyebrow">Manajemen</div>
+                <h1 class="pg-title">Data <em>Users</em></h1>
+                <p class="pg-sub">Kelola akun operator dan admin sistem.</p>
+              </div>
+              <button class="btn primary" onclick="openCreate()">
+                + Tambah User
+              </button>
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">Users</span
+                  ><span class="tbl-count">6 user</span>
+                </div>
+                <div class="tbl-bar-r">
+                  <input
+                    class="tbl-search"
+                    type="text"
+                    placeholder="Cari user..."
+                    oninput="ft(this, 't-usr')"
+                  />
+                </div>
+              </div>
+              <table id="t-usr">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Nama Lengkap</th>
+                    <th>Role</th>
+                    <th>Dibuat</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for u in users %}
+                  <tr>
+                    <td class="td-mono">USR-{{ forloop.counter }}</td>
+                    <td class="td-mono">{{ u.username }}</td>
+                    <td class="td-name" style="font-size: 12px">
+                      {{ u.username }}
+                    </td>
+
+                    <td>
+                      {% if u.role == 'admin' %}
+                      <span class="badge approved">Admin</span>
+                      {% else %}
+                      <span class="badge active">Operator</span>
+                      {% endif %}
+                    </td>
+
+                    <td class="td-mono">{{ u.created_at|default:"-" }}</td>
+
+                    <td>
+                      <div class="td-act">
+                        <button
+                          class="btn ghost"
+                          onclick="openEdit('{{ u.id }}', '{{ u.username }}', '{{ u.password }}', '{{ u.role }}')"
+                        >
+                          Edit
+                        </button>
+
+                        <a href="{% url 'user_delete' u.id %}">
+                          <button class="btn danger">Hapus</button>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ===== MODAL USER ===== -->
+           <input type="hidden" id="user-create-url" value="{% url 'user_create' %}">
+          <div
+            id="user-modal"
+            style="
+              display: none;
+              position: fixed;
+              inset: 0;
+              background: rgba(0, 0, 0, 0.4);
+              z-index: 999;
+            "
+          >
+            <div
+              style="
+                width: 400px;
+                background: white;
+                margin: 100px auto;
+                padding: 20px;
+                border: 1px solid var(--border);
+              "
+            >
+              <h3 class="pg-title" style="font-size: 20px">
+                Form <em>User</em>
+              </h3>
+
+              <form action="{% url 'user_create' %}" method="POST">
+                {% csrf_token %}
+
+                <input
+                  type="text"
+                  name="username"
+                  id="f-username"
+                  placeholder="Username"
+                  class="tbl-search"
+                  style="width: 100%; margin-bottom: 10px"
+                  required
+                />
+
+                <input
+                  type="password"
+                  name="password"
+                  id="f-password"
+                  placeholder="Password"
+                  class="tbl-search"
+                  style="width: 100%; margin-bottom: 10px"
+                  required
+                />
+
+                <select
+                  name="role"
+                  id="f-role"
+                  class="tbl-search"
+                  style="width: 100%; margin-bottom: 10px"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="operator">Operator</option>
+                </select>
+
+                <div
+                  style="display: flex; gap: 10px; justify-content: flex-end"
+                >
+                  <button
+                    type="button"
+                    onclick="closeModal()"
+                    class="btn ghost"
+                  >
+                    Batal
+                  </button>
+                  <button type="submit" class="btn primary">Simpan</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- ======== PAGE: CLIENTS ======== -->
+          <div id="p-clients" style="display: none">
+            <div class="pg-header">
+              <div>
+                <div class="pg-eyebrow">Data</div>
+                <h1 class="pg-title">Data <em>Clients</em></h1>
+                <p class="pg-sub">
+                  Daftar semua client yang terdaftar di sistem.
+                </p>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">Clients</span
+                  ><span class="tbl-count">6 client</span>
+                </div>
+                <div class="tbl-bar-r">
+                  <input
+                    class="tbl-search"
+                    type="text"
+                    placeholder="Cari client..."
+                    oninput="ft(this, 't-cli')"
+                  />
+                </div>
+              </div>
+              <table id="t-cli">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nama Lengkap</th>
+                    <th>Perusahaan</th>
+                    <th>Email</th>
+                    <th>Daftar</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">CLT-001</td>
+                    <td class="td-name" style="font-size: 12px">
+                      Agus Firmansyah
+                    </td>
+                    <td class="td-mono">PT. Maju Jaya</td>
+                    <td class="td-mono">agus@majujaya.co.id</td>
+                    <td class="td-mono">10/04/2025</td>
+                    <td><button class="btn ghost">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">CLT-002</td>
+                    <td class="td-name" style="font-size: 12px">
+                      Dewi Lestari
+                    </td>
+                    <td class="td-mono">PT. Karya Teknik</td>
+                    <td class="td-mono">dewi@karyateknik.com</td>
+                    <td class="td-mono">05/04/2025</td>
+                    <td><button class="btn ghost">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">CLT-003</td>
+                    <td class="td-name" style="font-size: 12px">Siti Rahayu</td>
+                    <td class="td-mono">CV. Industri Mas</td>
+                    <td class="td-mono">siti@industrimas.id</td>
+                    <td class="td-mono">18/04/2025</td>
+                    <td><button class="btn ghost">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">CLT-004</td>
+                    <td class="td-name" style="font-size: 12px">
+                      Hendra Kusuma
+                    </td>
+                    <td class="td-mono">PT. Teknik Sejahtera</td>
+                    <td class="td-mono">hendra@teksej.com</td>
+                    <td class="td-mono">21/04/2025</td>
+                    <td><button class="btn ghost">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">CLT-005</td>
+                    <td class="td-name" style="font-size: 12px">Farida Nur</td>
+                    <td class="td-mono">PT. Maju Jaya</td>
+                    <td class="td-mono">farida@majujaya.co.id</td>
+                    <td class="td-mono">01/03/2025</td>
+                    <td><button class="btn ghost">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">CLT-006</td>
+                    <td class="td-name" style="font-size: 12px">
+                      Bambang Irawan
+                    </td>
+                    <td class="td-mono">CV. Industri Mas</td>
+                    <td class="td-mono">bambang@industrimas.id</td>
+                    <td class="td-mono">15/03/2025</td>
+                    <td><button class="btn ghost">Detail</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ======== PAGE: PRODUCTION LOG ======== -->
+          <div id="p-prodlog" style="display: none">
+            <div class="pg-header">
+              <div>
+                <div class="pg-eyebrow">Produksi</div>
+                <h1 class="pg-title">Production <em>Log</em></h1>
+                <p class="pg-sub">
+                  Riwayat seluruh log produksi dari operator.
+                </p>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">Production Log</span
+                  ><span class="tbl-count">10 entri</span>
+                </div>
+                <div class="tbl-bar-r">
+                  <input
+                    class="tbl-search"
+                    type="text"
+                    placeholder="Cari log..."
+                    oninput="ft(this, 't-pl')"
+                  />
+                </div>
+              </div>
+              <table id="t-pl">
+                <thead>
+                  <tr>
+                    <th>WO ID</th>
+                    <th>Operator</th>
+                    <th>Qty Done</th>
+                    <th>Tanggal</th>
+                    <th>Catatan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">WO-024</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge approved">240 unit</span></td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Progress 48% dari target 500
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-022</td>
+                    <td class="td-mono">Andi Wijaya</td>
+                    <td><span class="badge approved">380 unit</span></td>
+                    <td class="td-mono">21/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Sesuai jadwal, material cukup
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-021</td>
+                    <td class="td-mono">Reza Pratama</td>
+                    <td><span class="badge approved">80 unit</span></td>
+                    <td class="td-mono">22/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Selesai tepat waktu
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-020</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge approved">45 unit</span></td>
+                    <td class="td-mono">20/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">—</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-019</td>
+                    <td class="td-mono">Andi Wijaya</td>
+                    <td><span class="badge approved">163 unit</span></td>
+                    <td class="td-mono">19/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Ada 12 unit reject QC
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-018</td>
+                    <td class="td-mono">Reza Pratama</td>
+                    <td><span class="badge approved">180 unit</span></td>
+                    <td class="td-mono">18/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Shift sore, mesin normal
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-017</td>
+                    <td class="td-mono">Budi Santoso</td>
+                    <td><span class="badge approved">320 unit</span></td>
+                    <td class="td-mono">17/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">—</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-016</td>
+                    <td class="td-mono">Andi Wijaya</td>
+                    <td><span class="badge approved">95 unit</span></td>
+                    <td class="td-mono">16/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Mesin CNC tuning pagi hari
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-015</td>
+                    <td class="td-mono">Joko Purnomo</td>
+                    <td><span class="badge approved">210 unit</span></td>
+                    <td class="td-mono">15/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Shift pagi lancar
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-014</td>
+                    <td class="td-mono">Reza Pratama</td>
+                    <td><span class="badge approved">127 unit</span></td>
+                    <td class="td-mono">14/04/2025</td>
+                    <td style="font-size: 0.8rem; color: var(--mid-gray)">
+                      Material terlambat 1 jam
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ======== PAGE: REJECT LOG ======== -->
+          <div id="p-rejectlog" style="display: none">
+            <div class="pg-header">
+              <div>
+                <div class="pg-eyebrow">Quality Control</div>
+                <h1 class="pg-title">Reject <em>Logs</em></h1>
+                <p class="pg-sub">
+                  Riwayat unit yang gagal QC dari seluruh work order.
+                </p>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <div class="tbl-bar">
+                <div class="tbl-bar-l">
+                  <span class="tbl-bar-title">Reject Logs</span
+                  ><span class="tbl-count">8 entri</span>
+                </div>
+                <div class="tbl-bar-r">
+                  <input
+                    class="tbl-search"
+                    type="text"
+                    placeholder="Cari log..."
+                    oninput="ft(this, 't-rl')"
+                  />
+                </div>
+              </div>
+              <table id="t-rl">
+                <thead>
+                  <tr>
+                    <th>WO ID</th>
+                    <th>Qty Reject</th>
+                    <th>Alasan</th>
+                    <th>Tanggal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">WO-024</td>
+                    <td><span class="badge rejected">3 unit</span></td>
+                    <td style="font-size: 0.875rem">
+                      Dimensi tidak sesuai drawing
+                    </td>
+                    <td class="td-mono">22/04/2025</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-022</td>
+                    <td><span class="badge rejected">8 unit</span></td>
+                    <td style="font-size: 0.875rem">
+                      Cacat permukaan (goresan)
+                    </td>
+                    <td class="td-mono">21/04/2025</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-019</td>
+                    <td><span class="badge rejected">12 unit</span></td>
+                    <td style="font-size: 0.875rem">
+                      Dimensi tidak sesuai toleransi
+                    </td>
+                    <td class="td-mono">19/04/2025</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-018</td>
+                    <td><span class="badge rejected">5 unit</span></td>
+                    <td style="font-size: 0.875rem">
+                      Material retak pada proses bending
+                    </td>
+                    <td class="td-mono">18/04/2025</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-017</td>
+                    <td><span class="badge rejected">15 unit</span></td>
+                    <td style="font-size: 0.875rem">
+                      Toleransi melebihi batas ±0.05mm
+                    </td>
+                    <td class="td-mono">17/04/2025</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-015</td>
+                    <td><span class="badge rejected">5 unit</span></td>
+                    <td style="font-size: 0.875rem">
+                      Lubang bor tidak presisi
+                    </td>
+                    <td class="td-mono">15/04/2025</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-013</td>
+                    <td><span class="badge rejected">10 unit</span></td>
+                    <td style="font-size: 0.875rem">
+                      Warna tidak sesuai spesifikasi
+                    </td>
+                    <td class="td-mono">12/04/2025</td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">WO-011</td>
+                    <td><span class="badge rejected">15 unit</span></td>
+                    <td style="font-size: 0.875rem">
+                      Deformasi akibat over-heat proses las
+                    </td>
+                    <td class="td-mono">08/04/2025</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- /content -->
+      </div>
+      <!-- /main -->
+    </div>
+    <!-- /shell -->
+  </body>
+  <script src="{% static 'admin/main.js' %}"></script>
 </html>
