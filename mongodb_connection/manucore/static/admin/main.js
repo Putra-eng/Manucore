@@ -118,10 +118,17 @@ function openEdit(id, username, role) {
   form.action = updateUrl;
 
   document.getElementById('f-username').value = username;
-  document.getElementById('f-password').value = ""; // ❗ kosongin
+  document.getElementById('f-password').value = ""; // kosong
   document.getElementById('f-role').value = role;
 }
 
 function closeModal() {
   document.getElementById('user-modal').style.display = 'none';
 }
+
+setTimeout(() => {
+  const notif = document.getElementById("notif-wrap");
+  if (notif) {
+    notif.style.display = "none";
+  }
+}, 5000);

@@ -23,7 +23,7 @@ def admin_page(request):
     return render(request, "admin/admin.html", {
         "users": users
     })
-
+    
 def operator_page(request):
     return render(request, "operator/operator.html")
 
@@ -127,22 +127,33 @@ def user_create(request):
         }
         users_collection.insert_one(data)
 
-    return redirect("admin_page")
+        messages.success(request, "User berhasil ditambahkan")
 
+    return redirect("admin_page")
 
 def user_update(request, id):
     if request.method == "POST":
+        update_data = {
+            "username": request.POST.get("username"),
+            "role": request.POST.get("role"),
+        }
+
+        password = request.POST.get("password")
+        if password:
+            update_data["password"] = make_password(password)
+
         users_collection.update_one(
             {"_id": ObjectId(id)},
-            {"$set": {
-                "username": request.POST.get("username"),
-                "password": make_password(request.POST.get("password")),
-                "role": request.POST.get("role"),
-            }}
+            {"$set": update_data}
         )
+
+        messages.success(request, "User berhasil diupdate")
 
     return redirect("admin_page")
 
 def user_delete(request, id):
     users_collection.delete_one({"_id": ObjectId(id)})
+
+    messages.success(request, "User berhasil dihapus")
+
     return redirect("admin_page")

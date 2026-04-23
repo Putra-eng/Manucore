@@ -1256,7 +1256,7 @@
                       <div class="td-act">
                         <button
                           class="btn ghost"
-                          onclick="openEdit('{{ u.id }}', '{{ u.username }}', '{{ u.password }}', '{{ u.role }}')"
+                          onclick="openEdit('{{ u.id }}', '{{ u.username }}', '{{ u.role }}')"
                         >
                           Edit
                         </button>
@@ -1270,11 +1270,27 @@
                   {% endfor %}
                 </tbody>
               </table>
+              {% if messages %}
+              <div id="notif-wrap">
+                {% for message in messages %}
+                <div class="notif {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+              </div>
+              {% endif %}
             </div>
           </div>
 
           <!-- ===== MODAL USER ===== -->
-           <input type="hidden" id="user-create-url" value="{% url 'user_create' %}">
+          <input
+            type="hidden"
+            id="user-create-url"
+            value="{% url 'user_create' %}"
+          />
+          <input
+            type="hidden"
+            id="user-update-url"
+            value="{% url 'user_update' 'ID_PLACEHOLDER' %}"
+          />
           <div
             id="user-modal"
             style="
@@ -1298,7 +1314,11 @@
                 Form <em>User</em>
               </h3>
 
-              <form action="{% url 'user_create' %}" method="POST">
+              <form
+                id="user-form"
+                action="{% url 'user_create' %}"
+                method="POST"
+              >
                 {% csrf_token %}
 
                 <input
