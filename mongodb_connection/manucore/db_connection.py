@@ -5,3 +5,4 @@ db = client["manucore_db"]
 
 clients_collection = db["client"]
 users_collection = db["staff_users"]
+requests_collection = db["requests"]
