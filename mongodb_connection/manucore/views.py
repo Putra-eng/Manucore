@@ -2,14 +2,12 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from datetime import datetime
-from .db_connection import clients_collection, users_collection
+from .db_connection import clients_collection, users_collection, requests_collection
 from .models import StaffUser
 from bson import ObjectId
 
-
 def landing_page(request):
     return render(request, 'Landing/index.html')
-
 
 def login_view(request):
     return render(request, 'Auth/index.html')
@@ -28,6 +26,41 @@ def operator_page(request):
     return render(request, "operator/operator.html")
 
 def client_page(request):
+    if request.method == "POST":
+        nama_produk = request.POST.get("nama_produk")
+        jumlah = request.POST.get("jumlah")
+        spesifikasi = request.POST.get("spesifikasi", "")
+        gambar = request.FILES.get("gambar")
+        
+        file_path = None
+        if gambar:
+            import os
+            from django.conf import settings
+            
+            upload_dir = os.path.join(settings.BASE_DIR, 'media', 'requests')
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            file_path = os.path.join('requests', gambar.name)
+            full_path = os.path.join(settings.BASE_DIR, 'media', file_path)
+            
+            with open(full_path, 'wb+') as destination:
+                for chunk in gambar.chunks():
+                    destination.write(chunk)
+        
+        request_data = {
+            "nama_produk": nama_produk,
+            "jumlah": int(jumlah),
+            "spesifikasi": spesifikasi,
+            "gambar_path": file_path,
+            "status": "pending",
+            "created_at": datetime.now()
+        }
+        
+        requests_collection.insert_one(request_data)
+        
+        messages.success(request, f'Request "{nama_produk}" berhasil dikirim!')
+        return redirect("client_page")
+    
     return render(request, "client/client.html")
 
 
