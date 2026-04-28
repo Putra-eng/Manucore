@@ -756,7 +756,7 @@
             <h2 class="form-title">Selamat<br><span class="acc">Datang</span></h2>
             <p class="form-desc">Masuk ke dashboard produksi Anda dengan kredensial yang terdaftar.</p>
           </div>
-          <form method="POST" action="{% url 'login' %}">
+          <form method="POST" action="{% url 'login_process' %}">
             {% csrf_token %}
             <div class="field-group">
               <label class="field-label">Email / ID Karyawan</label>
