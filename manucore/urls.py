@@ -2,12 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    
-    # Route untuk submit log produksi
-    path('submit-production/', views.submit_production_log, name='submit_production_log'),
-    
-    # Route untuk submit log reject
-    path('submit-reject/', views.submit_reject_log, name='submit_reject_log'),
 
     # Public
     path("",          views.landing_page,  name="home"),

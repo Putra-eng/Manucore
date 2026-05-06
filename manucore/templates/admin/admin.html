@@ -1,4 +1,4 @@
- {% load static %}
+{% load static %}
 <!doctype html>
 <html lang="id">
 <head>
@@ -148,7 +148,7 @@
   <div class="content" id="content">
 
   <!-- ====================================================== DASHBOARD -->
-  <div id="p-dashboard">
+  <div id="p-dashboard" style="display:none;">
     <div class="pg-header">
       <div>
         <div class="pg-eyebrow">Overview</div>
@@ -271,7 +271,7 @@
   <div id="p-workorders" style="display:none;">
     <div class="pg-header">
       <div><div class="pg-eyebrow">Produksi</div><h1 class="pg-title">Production <em>Orders</em></h1>
-      <p class="pg-sub">Production order dibuat otomatis saat request diapprove. Assign operator & atur jadwal di sini.</p></div>
+      <p class="pg-sub">Production order dibuat otomatis saat request diapprove. Assign operator &amp; atur jadwal di sini.</p></div>
     </div>
     <div class="tbl-wrap">
       <div class="tbl-bar">
@@ -383,6 +383,7 @@
   </div>
 
   <!-- ====================================================== PRODUCTION LOG -->
+  <!-- FIX: field production_log pakai request_id + operator_id, bukan work_order_id -->
   <div id="p-prodlog" style="display:none;">
     <div class="pg-header">
       <div><div class="pg-eyebrow">Produksi</div><h1 class="pg-title">Production <em>Log</em></h1>
@@ -391,21 +392,23 @@
     <div class="tbl-wrap">
       <div class="tbl-bar">
         <div class="tbl-bar-l"><span class="tbl-bar-title">Production Log</span><span class="tbl-count">{{ prod_logs|length }} entri</span></div>
-        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari WO / operator..." oninput="ft(this,'t-pl')"></div>
+        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari produk / operator..." oninput="ft(this,'t-pl')"></div>
       </div>
       <table id="t-pl">
-        <thead><tr><th>Work Order ID</th><th>Operator</th><th>Qty Done</th><th>Tanggal</th><th>Catatan</th></tr></thead>
+        <thead><tr><th>Request ID</th><th>Produk</th><th>Operator</th><th>Qty Done</th><th>Tanggal</th><th>Catatan</th></tr></thead>
         <tbody>
           {% for pl in prod_logs %}
           <tr>
-            <td class="td-mono">{{ pl.work_order_id|default:"—" }}</td>
-            <td class="td-mono">{{ pl.operator_name }}</td>
+            {# request_id adalah field yang benar di production_log #}
+            <td class="td-mono">{{ pl.request_id|default:"—"|slice:"-6"|upper }}</td>
+            <td class="td-name" style="font-size:12px;">{{ pl.product_name|default:"—" }}</td>
+            <td class="td-mono">{{ pl.operator_name|default:"—" }}</td>
             <td><span class="badge approved">{{ pl.quantity_done }} unit</span></td>
             <td class="td-mono">{{ pl.date|date:"d/m/Y"|default:"—" }}</td>
             <td style="font-size:.8rem;color:var(--mid-gray);">{{ pl.note|default:"—" }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada log produksi</td></tr>
+          <tr><td colspan="6" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada log produksi</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -413,6 +416,7 @@
   </div>
 
   <!-- ====================================================== REJECT LOG -->
+  <!-- FIX: field reject_log pakai request_id, bukan work_order_id -->
   <div id="p-rejectlog" style="display:none;">
     <div class="pg-header">
       <div><div class="pg-eyebrow">Quality Control</div><h1 class="pg-title">Reject <em>Log</em></h1>
@@ -421,20 +425,22 @@
     <div class="tbl-wrap">
       <div class="tbl-bar">
         <div class="tbl-bar-l"><span class="tbl-bar-title">Reject Log</span><span class="tbl-count">{{ reject_logs|length }} entri</span></div>
-        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari WO / alasan..." oninput="ft(this,'t-rl')"></div>
+        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari produk / alasan..." oninput="ft(this,'t-rl')"></div>
       </div>
       <table id="t-rl">
-        <thead><tr><th>Work Order ID</th><th>Qty Reject</th><th>Alasan</th><th>Tanggal</th></tr></thead>
+        <thead><tr><th>Request ID</th><th>Produk</th><th>Qty Reject</th><th>Alasan</th><th>Tanggal</th></tr></thead>
         <tbody>
           {% for rl in reject_logs %}
           <tr>
-            <td class="td-mono">{{ rl.work_order_id|default:"—" }}</td>
+            {# request_id adalah field yang benar di reject_log #}
+            <td class="td-mono">{{ rl.request_id|default:"—"|slice:"-6"|upper }}</td>
+            <td class="td-name" style="font-size:12px;">{{ rl.product_name|default:"—" }}</td>
             <td><span class="badge rejected">{{ rl.quantity_reject }} unit</span></td>
             <td style="font-size:.875rem;">{{ rl.reason|default:"—" }}</td>
             <td class="td-mono">{{ rl.date|date:"d/m/Y"|default:"—" }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Tidak ada reject</td></tr>
+          <tr><td colspan="5" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Tidak ada reject</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -569,11 +575,11 @@
   </div>
 </div>
 
-<script src="{% static 'admin/main.js' %}"></script>
+<!-- ====================================================== SEMUA JAVASCRIPT DI SINI (tanpa load main.js eksternal) -->
 <script>
 'use strict';
 
-// URL refs dari Django
+// ── URL REFS dari Django ──
 const URL_USER_CREATE = "{% url 'user_create' %}";
 const URL_USER_UPDATE = "{% url 'user_update' 'PLACEHOLDER' %}";
 const URL_REQ_APPROVE = "{% url 'request_approve' 'PLACEHOLDER' %}";
@@ -582,79 +588,88 @@ const URL_REQ_DL      = "{% url 'request_download' 'PLACEHOLDER' %}";
 const URL_PO_ASSIGN   = "{% url 'po_assign' 'PLACEHOLDER' %}";
 
 // ── CURSOR ──
-const cur = document.getElementById('cursor');
+const cur  = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
-let mx=0,my=0,rx=0,ry=0;
+let mx=0, my=0, rx=0, ry=0;
 document.addEventListener('mousemove', e => {
-  mx=e.clientX; my=e.clientY;
-  cur.style.left=mx+'px'; cur.style.top=my+'px';
+  mx = e.clientX; my = e.clientY;
+  cur.style.left = mx+'px'; cur.style.top = my+'px';
 });
 document.addEventListener('mouseover', e => {
-  if(e.target.matches('a,button,input,select,textarea,.nav-item,.btn,.ftab'))
+  if (e.target.matches('a,button,input,select,textarea,.nav-item,.btn,.ftab'))
     ring.classList.add('hovered');
 });
 document.addEventListener('mouseout', e => {
-  if(e.target.matches('a,button,input,select,textarea,.nav-item,.btn,.ftab'))
+  if (e.target.matches('a,button,input,select,textarea,.nav-item,.btn,.ftab'))
     ring.classList.remove('hovered');
 });
-(function anim() {
-  rx+=(mx-rx)*.13; ry+=(my-ry)*.13;
-  ring.style.left=rx+'px'; ring.style.top=ry+'px';
-  requestAnimationFrame(anim);
+(function animCursor() {
+  rx += (mx - rx) * 0.13;
+  ry += (my - ry) * 0.13;
+  ring.style.left = rx+'px'; ring.style.top = ry+'px';
+  requestAnimationFrame(animCursor);
 })();
 
 // ── CLOCK ──
 function tick() {
-  const n=new Date(), p=v=>String(v).padStart(2,'0');
-  document.getElementById('clock').textContent = p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+  const n = new Date(), p = v => String(v).padStart(2,'0');
+  document.getElementById('clock').textContent =
+    p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
 }
 tick(); setInterval(tick, 1000);
 
 // ── PAGE NAV ──
 const PAGES  = ['dashboard','requests','workorders','users','clients','prodlog','rejectlog'];
 const LABELS = {
-  dashboard:'Dashboard', requests:'Requests', workorders:'Production Orders',
-  users:'Staff Users', clients:'Clients', prodlog:'Production Log', rejectlog:'Reject Log'
+  dashboard:  'Dashboard',
+  requests:   'Requests',
+  workorders: 'Production Orders',
+  users:      'Staff Users',
+  clients:    'Clients',
+  prodlog:    'Production Log',
+  rejectlog:  'Reject Log',
 };
+
 function goto(id, navEl) {
   PAGES.forEach(p => {
     const el = document.getElementById('p-'+p);
-    if(el) el.style.display = 'none';
+    if (el) el.style.display = 'none';
   });
-  const t = document.getElementById('p-'+id);
-  if(t) t.style.display = 'block';
+  const target = document.getElementById('p-'+id);
+  if (target) target.style.display = 'block';
+
   document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
-  if(navEl) {
+  if (navEl) {
     navEl.classList.add('active');
   } else {
     const ni = document.getElementById('nav-'+id);
-    if(ni) ni.classList.add('active');
+    if (ni) ni.classList.add('active');
   }
   document.getElementById('bcCur').textContent = LABELS[id] || id;
   document.getElementById('content').scrollTo({top:0, behavior:'smooth'});
 }
-// Buka tab dari ?tab= query param (setelah redirect CRUD)
-(function() {
+
+// Baca tab dari query param ?tab= (setelah redirect CRUD)
+(function initTab() {
   const tab = new URLSearchParams(window.location.search).get('tab') || 'dashboard';
   goto(tab, null);
 })();
 
-// ── TABLE FILTER ──
+// ── TABLE SEARCH FILTER ──
 function ft(inp, tid) {
   const q = inp.value.toLowerCase();
   document.querySelectorAll('#'+tid+' tbody tr').forEach(r => {
-    // jangan hapus filter status
-    if(r.dataset.hidden === 'status') return;
+    if (r.dataset.hidden === 'status') return; // jangan timpa filter status
     r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
 }
 
-// ── FILTER REQUEST TABS ──
+// ── FILTER STATUS TABS (halaman Requests) ──
 function filterReq(status, btn) {
   document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('#t-req tbody tr').forEach(r => {
-    if(status === 'all' || r.dataset.status === status) {
+    if (status === 'all' || r.dataset.status === status) {
       r.style.display = '';
       delete r.dataset.hidden;
     } else {
@@ -674,7 +689,7 @@ window.addEventListener('load', () => {
     const t = setInterval(() => {
       c = Math.min(c + step, target);
       el.innerHTML = c + suffix;
-      if(c >= target) clearInterval(t);
+      if (c >= target) clearInterval(t);
     }, 20);
   });
 });
@@ -693,49 +708,51 @@ document.querySelectorAll('.notif-bar').forEach(el => {
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
+// Tutup modal kalau klik backdrop
 document.querySelectorAll('.modal-ov').forEach(m => {
-  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
+// Tutup modal dengan Escape
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape')
+  if (e.key === 'Escape')
     document.querySelectorAll('.modal-ov.open').forEach(m => m.classList.remove('open'));
 });
 
 // ── MODAL: REQUEST DETAIL ──
 function openReqDetail(id, product, client, company, qty, desc, status, note, filePath, createdAt) {
-  document.getElementById('rd-id').textContent        = id.slice(-6).toUpperCase();
-  document.getElementById('rd-date').textContent      = createdAt || '—';
-  document.getElementById('rd-product').textContent   = product   || '—';
-  document.getElementById('rd-qty').textContent       = qty       || '—';
-  document.getElementById('rd-client').textContent    = client    || '—';
-  document.getElementById('rd-company').textContent   = company   || '—';
-  document.getElementById('rd-desc').textContent      = desc      || '—';
-  document.getElementById('rd-status').innerHTML      =
+  document.getElementById('rd-id').textContent      = id.slice(-6).toUpperCase();
+  document.getElementById('rd-date').textContent    = createdAt || '—';
+  document.getElementById('rd-product').textContent = product   || '—';
+  document.getElementById('rd-qty').textContent     = qty       || '—';
+  document.getElementById('rd-client').textContent  = client    || '—';
+  document.getElementById('rd-company').textContent = company   || '—';
+  document.getElementById('rd-desc').textContent    = desc      || '—';
+  document.getElementById('rd-status').innerHTML    =
     '<span class="badge '+status+'">'+status.charAt(0).toUpperCase()+status.slice(1)+'</span>';
 
-  // Admin note
+  // Admin note (hanya tampil kalau ada)
   const noteRow = document.getElementById('rd-note-row');
-  if(note) {
+  if (note) {
     noteRow.style.display = 'block';
     document.getElementById('rd-note').textContent = note;
   } else {
     noteRow.style.display = 'none';
   }
 
-  // File
+  // File gambar teknik
   const dlBtn = document.getElementById('rd-dl-btn');
-  if(filePath) {
+  if (filePath) {
     document.getElementById('rd-fname').textContent = filePath.split('/').pop();
-    dlBtn.style.display = 'inline-flex';
-    dlBtn.href = URL_REQ_DL.replace('PLACEHOLDER', id);
+    dlBtn.style.display   = 'inline-flex';
+    dlBtn.href            = URL_REQ_DL.replace('PLACEHOLDER', id);
   } else {
     document.getElementById('rd-fname').textContent = 'Tidak ada file yang diunggah';
     dlBtn.style.display = 'none';
   }
 
-  // Aksi (hanya untuk pending)
+  // Tombol Approve / Reject hanya untuk status pending
   const actDiv = document.getElementById('rd-actions');
-  if(status === 'pending') {
+  if (status === 'pending') {
     actDiv.style.display = 'block';
     document.getElementById('form-approve').action = URL_REQ_APPROVE.replace('PLACEHOLDER', id);
     document.getElementById('form-reject').action  = URL_REQ_REJECT.replace('PLACEHOLDER', id);
@@ -758,7 +775,7 @@ function openPODetail(id, product, qty, opId, opName, status, startDate, endDate
   document.getElementById('po-status-sel').value = status;
   document.getElementById('po-start').value      = startDate || '';
   document.getElementById('po-end').value        = endDate   || '';
-  if(opId) document.getElementById('po-op-sel').value = opId;
+  if (opId) document.getElementById('po-op-sel').value = opId;
   document.getElementById('form-po').action = URL_PO_ASSIGN.replace('PLACEHOLDER', id);
   document.getElementById('modalPO').classList.add('open');
 }
