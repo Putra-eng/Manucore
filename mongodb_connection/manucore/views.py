@@ -369,3 +369,18 @@ def client_page(request):
         messages.success(request, f'Request "{product_name}" berhasil dikirim!')
         return redirect("client_page")
     return render(request, "client/client.html")
+
+def submit_production_log(request):
+    if request.method == 'POST':
+        # ... kode lo untuk ambil data dari form ...
+        # ... kode lo untuk simpan data (misal: data.save()) ...
+        
+        # Setelah sukses simpan, arahkan balik ke dashboard
+        return redirect('nama_view_dashboard') 
+
+def submit_reject_log(request):
+    if request.method == 'POST':
+        # ... kode lo untuk ambil data ...
+        # ... kode lo untuk simpan data ...
+        
+        return redirect('nama_view_dashboard')

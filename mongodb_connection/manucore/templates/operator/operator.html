@@ -1,11 +1,1085 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operator Dashboard – MANUCORE</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  
+  <!-- Link ke CSS yang sudah ada -->
+  <link rel="stylesheet" href="{% static 'admin/style.css' %}">
+  
+  <style>
+    /* ============================================================
+       CUSTOM STYLES KHUSUS OPERATOR DASHBOARD
+       (Tambahan untuk fitur spesifik operator)
+       ============================================================ */
+    
+    /* Work Order Card untuk mobile-friendly view */
+    .wo-card {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s;
+    }
+    .wo-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--red);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .wo-card:hover::before {
+      transform: scaleX(1);
+    }
+    .wo-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    .wo-name {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--black);
+      margin-bottom: 0.25rem;
+    }
+    .wo-id {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--light-gray);
+      letter-spacing: 1.5px;
+    }
+    .wo-progress-wrap {
+      margin: 1rem 0;
+    }
+    .wo-prog-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .wo-prog-label span {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--light-gray);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .wo-prog-label .prog-num {
+      color: var(--dark);
+      font-weight: 600;
+    }
+    .wo-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    .wo-progress-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: var(--red);
+      transition: width 0.3s ease;
+    }
+    .wo-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .wo-meta-item label {
+      font-family: var(--mono);
+      font-size: 8px;
+      color: var(--light-gray);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .wo-meta-item .value {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--dark);
+    }
+    .wo-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    
+    /* Quick Action Buttons */
+    .btn.action-log {
+      flex: 1;
+      background: var(--black);
+      color: white;
+      clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+      justify-content: center;
+    }
+    .btn.action-log:hover {
+      background: var(--red);
+    }
+    .btn.action-reject {
+      flex: 1;
+      background: rgba(200, 16, 46, 0.08);
+      color: var(--red);
+      border: 1px solid rgba(200, 16, 46, 0.2);
+      justify-content: center;
+    }
+    .btn.action-reject:hover {
+      background: var(--red);
+      color: white;
+      border-color: var(--red);
+    }
+    
+    /* Form dalam Modal - Enhanced */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .form-row.single {
+      grid-template-columns: 1fr;
+    }
+    
+    /* Success State */
+    .success-icon {
+      text-align: center;
+      font-size: 3rem;
+      color: #27ae60;
+      margin-bottom: 1rem;
+    }
+    .success-msg {
+      text-align: center;
+      font-family: var(--display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 0.5rem;
+    }
+    .success-detail {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--light-gray);
+      letter-spacing: 1px;
+    }
+    
+    /* Stat Summary di top */
+    .op-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .op-stat {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .op-stat::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--red);
+    }
+    .op-stat-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--light-gray);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .op-stat-value {
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: 2.2rem;
+      color: var(--black);
+      line-height: 1;
+    }
+    .op-stat.accent {
+      background: var(--black);
+    }
+    .op-stat.accent .op-stat-label {
+      color: #444;
+    }
+    .op-stat.accent .op-stat-value {
+      color: var(--off-white);
+    }
+    
+    /* Filter Tabs untuk Status */
+    .filter-wrap {
+      margin-bottom: 1.5rem;
+    }
+
+    /* Modal Overlay */
+    .modal-ov {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-ov.open {
+      display: flex;
+    }
+    .modal-box {
+      background: white;
+      padding: 2rem;
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+    }
+    .modal-x {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      border: none;
+      background: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .modal-title {
+      font-family: var(--display);
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .modal-title em {
+      font-style: normal;
+      color: var(--red);
+    }
+    .dg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .df {
+      margin-bottom: 0.5rem;
+    }
+    .df.full {
+      grid-column: 1 / -1;
+    }
+    .df label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--light-gray);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .df .val {
+      font-weight: 600;
+    }
+    .mf label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .mf input, .mf textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    .mf .hint {
+      font-size: 10px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .modal-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    /* Badge Styles */
+    .badge {
+      padding: 3px 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge.in_progress { background: #fff3cd; color: #856404; }
+    .badge.done, .badge.selesai { background: #d4edda; color: #155724; }
+    .badge.pending { background: #f8f9fa; color: #383d41; }
+
+    /* Notif Toast */
+    .notif-stack {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .notif-bar {
+      background: white;
+      padding: 1rem;
+      border-left: 3px solid;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 300px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .notif-bar.success { border-color: #27ae60; }
+    .notif-bar.error { border-color: #c8102e; }
+    .notif-bar .nicon { font-weight: bold; }
+    .notif-bar .nmsg { flex: 1; }
+    .notif-bar .nclose { border: none; background: none; cursor: pointer; }
+  </style>
 </head>
 <body>
-    <h1>INI HALMAAN OPERATOR</h1>
+
+  <!-- Custom Cursor -->
+  <div class="cursor"></div>
+  <div class="cursor-ring"></div>
+
+  <!-- Main Shell -->
+  <div class="shell">
+    
+    <!-- ============================================================
+         SIDEBAR
+         ============================================================ -->
+    <aside class="sidebar">
+      
+      <!-- Brand -->
+      <a href="#" class="sidebar-brand">
+        <div class="brand-mark">
+          <span>MC</span>
+        </div>
+        <div class="brand-txt">
+          MANU<em>CORE</em>
+        </div>
+      </a>
+
+      <!-- Navigation -->
+      <nav class="sidebar-nav">
+        
+        <div class="nav-section-label">Operator Panel</div>
+        
+        <a href="#" class="nav-item active">
+          <!-- Icon: Dashboard -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+          </svg>
+          Dashboard
+        </a>
+        
+        <a href="#" class="nav-item">
+          <!-- Icon: Work Orders -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
+          Work Orders
+        </a>
+        
+        <a href="#" class="nav-item">
+          <!-- Icon: History -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+          </svg>
+          Riwayat
+        </a>
+        
+        <div class="nav-section-label">Bantuan</div>
+        
+        <a href="#" class="nav-item">
+          <!-- Icon: Help -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+          </svg>
+          Panduan
+        </a>
+        
+      </nav>
+
+      <!-- User Info Footer -->
+      <div class="sidebar-footer">
+        <div class="sb-user">
+          <div class="sb-avatar">
+            {{ request.user.username|first|upper }}
+          </div>
+          <div class="sb-info">
+            <div class="sb-name">
+              {{ request.user.get_full_name|default:request.user.username }}
+            </div>
+            <div class="sb-role">Operator</div>
+          </div>
+          <!-- Logout Form -->
+          <form method="post" action="{% url 'logout' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="sb-logout" title="Logout">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+      
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT AREA
+         ============================================================ -->
+    <main class="main">
+      
+      <!-- Topbar -->
+      <div class="topbar">
+        
+        <!-- Breadcrumb -->
+        <div class="topbar-bc">
+          <span class="bc-item">Operator</span>
+          <span class="bc-sep">/</span>
+          <span class="bc-item cur">Dashboard</span>
+        </div>
+
+        <!-- Topbar Right -->
+        <div class="topbar-right">
+          
+          <!-- Clock -->
+          <div class="tb-clock" id="liveClock">
+            --:--:--
+          </div>
+          
+          <!-- Status Pill -->
+          <div class="tb-pill">
+            <span class="dot"></span>
+            Shift 1 Aktif
+          </div>
+          
+          <!-- Notification Bell -->
+          <button class="tb-notif">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+            </svg>
+            <span class="tb-ndot"></span>
+          </button>
+          
+        </div>
+        
+      </div>
+
+      <!-- Content Area -->
+      <div class="content">
+        
+        <!-- ============================================================
+             DJANGO MESSAGES (Success/Error notifications dari backend)
+             ============================================================ -->
+        {% if messages %}
+        <div id="django-messages" style="margin-bottom: 1.5rem;">
+          {% for message in messages %}
+          <div class="notif-bar {{ message.tags }}" style="position: static; margin-bottom: 0.5rem; animation: none;">
+            <span class="nicon">
+              {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% else %}⚠{% endif %}
+            </span>
+            <span class="nmsg">{{ message }}</span>
+            <button class="nclose" onclick="this.parentElement.remove()">×</button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Page Header -->
+        <div class="pg-header">
+          <div>
+            <div class="pg-eyebrow">Production Control</div>
+            <h1 class="pg-title">
+              Dashboard <em>Operator</em>
+            </h1>
+            <p class="pg-sub">
+              Kelola work order dan catat progres produksi secara realtime
+            </p>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             OPERATOR SUMMARY STATS
+             ============================================================ -->
+        <div class="op-summary">
+          
+          <!-- Total Work Orders Aktif -->
+          <div class="op-stat">
+            <div class="op-stat-label">Work Orders Aktif</div>
+            <div class="op-stat-value">
+              {{ work_orders_active_count }}
+            </div>
+          </div>
+          
+          <!-- Total Unit Diproduksi Hari Ini -->
+          <div class="op-stat accent">
+            <div class="op-stat-label">Unit Diproduksi Hari Ini</div>
+            <div class="op-stat-value">
+              {{ units_produced_today }}
+            </div>
+          </div>
+          
+          <!-- Total Reject Hari Ini -->
+          <div class="op-stat">
+            <div class="op-stat-label">Reject Hari Ini</div>
+            <div class="op-stat-value" style="color: var(--red);">
+              {{ reject_count_today }}
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- ============================================================
+             FILTER TABS (Status Work Order)
+             ============================================================ -->
+        <div class="filter-wrap">
+          <div class="ftabs">
+            <button class="ftab active" data-filter="all">Semua</button>
+            <button class="ftab" data-filter="in_progress">In Progress</button>
+            <button class="ftab" data-filter="pending">Pending</button>
+            <button class="ftab" data-filter="done">Selesai</button>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             DAFTAR WORK ORDER
+             Gunakan Table untuk Desktop, Card untuk Mobile
+             ============================================================ -->
+        
+        <!-- Table View (Desktop) -->
+        <div class="tbl-wrap">
+          
+          <div class="tbl-bar">
+            <div class="tbl-bar-l">
+              <div class="tbl-bar-title">Daftar Work Order</div>
+              <div class="tbl-count">
+                {{ work_orders.count }} Orders
+              </div>
+            </div>
+            <div class="tbl-bar-r">
+              <input type="text" class="tbl-search" placeholder="Cari produk...">
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>WO ID</th>
+                <th>Nama Produk</th>
+                <th>Target Qty</th>
+                <th>Progres</th>
+                <th>Status</th>
+                <th>Deadline</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="woTableBody">
+              
+              <!-- ============================================================
+                   DJANGO TEMPLATE: LOOPING WORK ORDERS
+                   Di views.py, kirim context:
+                   work_orders = WorkOrder.objects.filter(assigned_to=request.user)
+                   ============================================================ -->
+              
+              {% for wo in work_orders %}
+              <tr>
+                <td>
+                  <span class="td-mono">
+                    {{ wo.id }}
+                  </span>
+                </td>
+                <td>
+                  <span class="td-name">
+                    {{ wo.product_name }}
+                  </span>
+                </td>
+                <td>
+                  <span class="td-mono">
+                    {{ wo.quantity }} Unit
+                  </span>
+                </td>
+                <td>
+                  <span class="td-mono">
+                    {{ wo.quantity_done|default:0 }} / {{ wo.quantity }} ({{ wo.progress_percentage|default:0 }}%)
+                  </span>
+                </td>
+                <td>
+                  <span class="badge {{ wo.status }}">
+                    {% if wo.status == 'in_progress' %}
+                      In Progress
+                    {% elif wo.status == 'pending' %}
+                      Pending
+                    {% elif wo.status == 'done' %}
+                      Selesai
+                    {% else %}
+                      {{ wo.get_status_display }}
+                    {% endif %}
+                  </span>
+                </td>
+                <td>
+                  <span class="td-mono">
+                    {{ wo.end_date|date:"Y-m-d" }}
+                  </span>
+                </td>
+                <td>
+                  <div class="td-act">
+                    
+                    {% if wo.status != 'done' %}
+                    <!-- Button Log Produksi -->
+                    <button class="btn ghost btn-log-prod" 
+                            data-wo-id="{{ wo.id }}" 
+                            data-wo-name="{{ wo.product_name }}"
+                            data-wo-qty="{{ wo.quantity }}"
+                            data-wo-done="{{ wo.quantity_done|default:0 }}">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                      </svg>
+                      Log Produksi
+                    </button>
+                    
+                    <!-- Button Log Reject -->
+                    <button class="btn danger btn-log-reject" 
+                            data-wo-id="{{ wo.id }}" 
+                            data-wo-name="{{ wo.product_name }}">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                      </svg>
+                      Reject
+                    </button>
+                    {% else %}
+                    <!-- Sudah selesai -->
+                    <button class="btn ghost" disabled style="opacity: 0.4; cursor: not-allowed;">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                      </svg>
+                      Selesai
+                    </button>
+                    {% endif %}
+                    
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <!-- Jika tidak ada data -->
+              <tr>
+                <td colspan="7" class="empty">
+                  Tidak ada work order yang tersedia
+                </td>
+              </tr>
+              {% endfor %}
+              
+            </tbody>
+          </table>
+          
+        </div>
+
+      </div>
+      
+    </main>
+
+  </div>
+
+  <!-- ============================================================
+       MODAL: LOG PRODUKSI
+       ============================================================ -->
+  <div class="modal-ov" id="modalLogProd">
+    <div class="modal-box">
+      
+      <button class="modal-x" onclick="closeModal('modalLogProd')">&times;</button>
+      
+      <h2 class="modal-title">
+        Log <em>Produksi</em>
+      </h2>
+
+      <!-- Info Work Order -->
+      <div class="dg" style="margin-bottom: 1.5rem;">
+        <div class="df">
+          <label>Work Order ID</label>
+          <div class="val" id="logProdWOId">
+            <!-- DIISI VIA JAVASCRIPT -->
+            WO-2024-001
+          </div>
+        </div>
+        <div class="df">
+          <label>Nama Produk</label>
+          <div class="val" id="logProdWOName">
+            <!-- DIISI VIA JAVASCRIPT -->
+            Piston Ring A-300
+          </div>
+        </div>
+        <div class="df">
+          <label>Target Qty</label>
+          <div class="val" id="logProdWOQty">
+            <!-- DIISI VIA JAVASCRIPT -->
+            500 Unit
+          </div>
+        </div>
+        <div class="df">
+          <label>Sudah Diproduksi</label>
+          <div class="val" id="logProdWODone">
+            <!-- DIISI VIA JAVASCRIPT -->
+            320 Unit
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Input -->
+      <form id="formLogProd" method="POST" action="{% url 'submit_production_log' %}">
+        {% csrf_token %}
+        
+        <!-- Hidden Field: Work Order ID (diisi via JavaScript) -->
+        <input type="hidden" name="work_order_id" id="inputWOIdProd">
+
+        <div class="form-row single">
+          <div class="mf">
+            <label>Jumlah Diproduksi <span style="color: var(--red);">*</span></label>
+            <input type="number" 
+                   name="quantity_done" 
+                   id="inputQtyDone"
+                   placeholder="0" 
+                   min="1" 
+                   required>
+            <div class="hint">Masukkan jumlah unit yang berhasil diproduksi</div>
+          </div>
+        </div>
+
+        <div class="form-row single">
+          <div class="mf">
+            <label>Catatan (Opsional)</label>
+            <textarea name="note" 
+                      id="inputNoteProd"
+                      placeholder="Tambahkan catatan proses produksi..."></textarea>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeModal('modalLogProd')">
+            Batal
+          </button>
+          <button type="submit" class="btn primary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            Simpan Log
+          </button>
+        </div>
+        
+      </form>
+      
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: LOG REJECT
+       ============================================================ -->
+  <div class="modal-ov" id="modalLogReject">
+    <div class="modal-box">
+      
+      <button class="modal-x" onclick="closeModal('modalLogReject')">&times;</button>
+      
+      <h2 class="modal-title">
+        Log <em>Reject</em>
+      </h2>
+
+      <!-- Info Work Order -->
+      <div class="dg" style="margin-bottom: 1.5rem;">
+        <div class="df full">
+          <label>Work Order</label>
+          <div class="val">
+            <span id="logRejectWOId" style="font-family: var(--mono); font-size: 11px; color: var(--light-gray);">
+              <!-- DIISI VIA JAVASCRIPT -->
+              WO-2024-001
+            </span>
+            <span style="margin: 0 8px;">—</span>
+            <span id="logRejectWOName">
+              <!-- DIISI VIA JAVASCRIPT -->
+              Piston Ring A-300
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Input -->
+      <form id="formLogReject" method="POST" action="{% url 'submit_reject_log' %}">
+        {% csrf_token %}
+        
+        <!-- Hidden Field: Work Order ID -->
+        <input type="hidden" name="work_order_id" id="inputWOIdReject">
+
+        <div class="form-row single">
+          <div class="mf">
+            <label>Jumlah Reject <span style="color: var(--red);">*</span></label>
+            <input type="number" 
+                   name="quantity_reject" 
+                   id="inputQtyReject"
+                   placeholder="0" 
+                   min="1" 
+                   required>
+            <div class="hint">Jumlah unit yang tidak lolos QC</div>
+          </div>
+        </div>
+
+        <div class="form-row single">
+          <div class="mf">
+            <label>Alasan Reject <span style="color: var(--red);">*</span></label>
+            <textarea name="reason" 
+                      id="inputReasonReject"
+                      placeholder="Jelaskan penyebab reject (misal: cacat material, dimensi tidak sesuai, dll)"
+                      required></textarea>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeModal('modalLogReject')">
+            Batal
+          </button>
+          <button type="submit" class="btn danger">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+            Catat Reject
+          </button>
+        </div>
+        
+      </form>
+      
+    </div>
+  </div>
+
+  <!-- ============================================================
+       NOTIFIKASI TOAST STACK
+       ============================================================ -->
+  <div class="notif-stack" id="notifStack">
+    <!-- Toast notifications akan muncul di sini via JavaScript -->
+  </div>
+
+  <!-- ============================================================
+       JAVASCRIPT
+       ============================================================ -->
+  <script>
+    /* ============================================================
+       CUSTOM CURSOR
+       ============================================================ */
+    const cursor = document.querySelector('.cursor');
+    const cursorRing = document.querySelector('.cursor-ring');
+    let mouseX = 0, mouseY = 0;
+    let ringX = 0, ringY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      cursor.style.left = mouseX + 'px';
+      cursor.style.top = mouseY + 'px';
+    });
+
+    function animateRing() {
+      ringX += (mouseX - ringX) * 0.15;
+      ringY += (mouseY - ringY) * 0.15;
+      cursorRing.style.left = ringX + 'px';
+      cursorRing.style.top = ringY + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    // Hover effect
+    const hoverables = document.querySelectorAll('a, button, .nav-item, .btn, .tb-notif, input, select, textarea');
+    hoverables.forEach(el => {
+      el.addEventListener('mouseenter', () => cursorRing.classList.add('hovered'));
+      el.addEventListener('mouseleave', () => cursorRing.classList.remove('hovered'));
+    });
+
+    /* ============================================================
+       LIVE CLOCK
+       ============================================================ */
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('liveClock').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* ============================================================
+       MODAL FUNCTIONS
+       ============================================================ */
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('open');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('open');
+    }
+
+    // Close modal when clicking outside
+    document.querySelectorAll('.modal-ov').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('open');
+        }
+      });
+    });
+
+    /* ============================================================
+       NOTIFICATION TOAST SYSTEM
+       ============================================================ */
+    function showNotif(message, type = 'success') {
+      const stack = document.getElementById('notifStack');
+      const notif = document.createElement('div');
+      notif.className = `notif-bar ${type}`;
+      
+      const icon = type === 'success' ? '✓' : 
+                   type === 'error' ? '✕' : '⚠';
+      
+      notif.innerHTML = `
+        <span class="nicon">${icon}</span>
+        <span class="nmsg">${message}</span>
+        <button class="nclose" onclick="this.parentElement.remove()">×</button>
+      `;
+      
+      stack.appendChild(notif);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        if (notif.parentElement) {
+          notif.remove();
+        }
+      }, 5000);
+    }
+
+    /* ============================================================
+       OPEN MODAL LOG PRODUKSI
+       ============================================================ */
+    document.querySelectorAll('.btn-log-prod').forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Ambil data dari data-attributes
+        const woId = this.dataset.woId;
+        const woName = this.dataset.woName;
+        const woQty = this.dataset.woQty;
+        const woDone = this.dataset.woDone;
+        
+        // Isi data ke modal
+        document.getElementById('logProdWOId').textContent = woId;
+        document.getElementById('logProdWOName').textContent = woName;
+        document.getElementById('logProdWOQty').textContent = woQty + ' Unit';
+        document.getElementById('logProdWODone').textContent = woDone + ' Unit';
+        
+        // Set hidden field work_order_id
+        document.getElementById('inputWOIdProd').value = woId;
+        
+        // Reset form
+        document.getElementById('formLogProd').reset();
+        document.getElementById('inputWOIdProd').value = woId; // restore after reset
+        
+        // Buka modal
+        openModal('modalLogProd');
+      });
+    });
+
+    /* ============================================================
+       OPEN MODAL LOG REJECT
+       ============================================================ */
+    document.querySelectorAll('.btn-log-reject').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const woId = this.dataset.woId;
+        const woName = this.dataset.woName;
+        
+        document.getElementById('logRejectWOId').textContent = woId;
+        document.getElementById('logRejectWOName').textContent = woName;
+        
+        document.getElementById('inputWOIdReject').value = woId;
+        
+        document.getElementById('formLogReject').reset();
+        document.getElementById('inputWOIdReject').value = woId;
+        
+        openModal('modalLogReject');
+      });
+    });
+
+    /* ============================================================
+       FILTER TABS
+       ============================================================ */
+    document.querySelectorAll('.ftab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Remove active from all
+        document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+        
+        // Add active to clicked
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        
+        const rows = document.querySelectorAll('#woTableBody tr');
+        rows.forEach(row => {
+          if (filter === 'all') {
+            row.style.display = '';
+          } else {
+            const badge = row.querySelector('.badge');
+            if (badge && badge.classList.contains(filter)) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          }
+        });
+      });
+    });
+
+    /* ============================================================
+       SEARCH TABLE
+       ============================================================ */
+    document.querySelector('.tbl-search').addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#woTableBody tr');
+      
+      rows.forEach(row => {
+        const productName = row.querySelector('.td-name');
+        if (productName) {
+          const text = productName.textContent.toLowerCase();
+          row.style.display = text.includes(searchTerm) ? '' : 'none';
+        }
+      });
+    });
+
+  </script>
+
 </body>
 </html>
