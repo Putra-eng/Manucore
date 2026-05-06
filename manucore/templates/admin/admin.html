@@ -1,0 +1,791 @@
+ {% load static %}
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ManuCore — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'admin/style.css' %}"/>
+  <style>
+    /* NOTIF TOAST */
+    .notif-stack{position:fixed;top:1.5rem;right:1.5rem;z-index:9900;display:flex;flex-direction:column;gap:.6rem;max-width:360px;pointer-events:none;}
+    .notif-bar{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-left:3px solid;font-family:var(--mono);font-size:10px;letter-spacing:1px;line-height:1.6;animation:nIn .3s ease;background:white;box-shadow:0 4px 24px rgba(0,0,0,.14);pointer-events:all;}
+    .notif-bar.success{border-color:#27AE60;color:#1a7a3f;}
+    .notif-bar.error{border-color:var(--red);color:var(--red);}
+    .notif-bar.warning{border-color:#F39C12;color:#9a620a;}
+    @keyframes nIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+    .nicon{font-size:13px;flex-shrink:0;}
+    .nmsg{flex:1;}
+    .nclose{background:none;border:none;cursor:pointer;opacity:.4;transition:opacity .2s;color:inherit;font-size:14px;padding:0 2px;flex-shrink:0;}
+    .nclose:hover{opacity:1;}
+    /* MODAL */
+    .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;align-items:center;justify-content:center;}
+    .modal-ov.open{display:flex;}
+    .modal-box{background:white;border:1px solid var(--border);padding:2rem;width:480px;max-width:95vw;position:relative;max-height:90vh;overflow-y:auto;animation:mIn .25s ease;}
+    @keyframes mIn{from{opacity:0;transform:translateY(-14px);}to{opacity:1;transform:translateY(0);}}
+    .modal-title{font-family:var(--display);font-weight:900;font-size:1.6rem;text-transform:uppercase;color:var(--black);margin-bottom:1.5rem;letter-spacing:-0.5px;line-height:1;}
+    .modal-title em{color:var(--red);font-style:normal;}
+    .modal-x{position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;font-size:18px;color:#aaa;transition:color .2s;line-height:1;}
+    .modal-x:hover{color:var(--red);}
+    .mf{margin-bottom:1rem;}
+    .mf label{display:block;font-family:var(--mono);font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+    .mf input,.mf select,.mf textarea{width:100%;font-family:var(--body);font-size:.9rem;border:1px solid var(--border);background:white;padding:10px 14px;outline:none;border-radius:0;transition:border-color .2s;-webkit-appearance:none;}
+    .mf textarea{resize:vertical;min-height:80px;}
+    .mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(--red);}
+    .mf .hint{font-family:var(--mono);font-size:9px;color:#aaa;letter-spacing:1px;margin-top:4px;}
+    .modal-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);}
+    /* DETAIL FIELDS */
+    .dg{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;}
+    .df label{font-family:var(--mono);font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:4px;}
+    .df .val{font-size:.9rem;color:var(--dark);font-weight:500;line-height:1.4;}
+    .df.full{grid-column:span 2;}
+    /* FILE BOX */
+    .file-box{background:var(--cream);border:1px dashed rgba(0,0,0,.15);padding:1.5rem;text-align:center;font-family:var(--mono);font-size:10px;color:var(--light-gray);letter-spacing:1px;margin-bottom:1.25rem;}
+    .file-box .ficon{font-size:2rem;margin-bottom:.5rem;}
+    /* FILTER TABS */
+    .ftabs{display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+    .ftab{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 14px;border:1px solid var(--border);background:white;cursor:pointer;transition:all .2s;color:var(--mid-gray);}
+    .ftab:hover{border-color:var(--red);color:var(--red);}
+    .ftab.active{background:var(--red);color:white;border-color:var(--red);}
+    /* REJECT FORM */
+    .reject-zone{background:rgba(200,16,46,.04);border:1px solid rgba(200,16,46,.18);padding:1rem;margin-top:.75rem;}
+    .reject-zone label{display:block;font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .reject-zone textarea{width:100%;font-family:var(--body);font-size:.875rem;border:1px solid rgba(200,16,46,.25);background:white;padding:10px;outline:none;border-radius:0;resize:vertical;min-height:70px;}
+    .reject-zone textarea:focus{border-color:var(--red);}
+    /* 2-col grid inside modal */
+    .mgrid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+    /* extra badge colors */
+    .badge.in_progress{background:rgba(41,182,246,.08);color:#0369a1;border-color:rgba(41,182,246,.2);}
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NOTIF TOAST STACK -->
+{% if messages %}
+<div class="notif-stack" id="notifStack">
+  {% for msg in messages %}
+  <div class="notif-bar {{ msg.tags }}">
+    <span class="nicon">{% if msg.tags == "success" %}✔{% elif msg.tags == "error" %}✖{% else %}⚠{% endif %}</span>
+    <span class="nmsg">{{ msg }}</span>
+    <button class="nclose" onclick="this.parentElement.remove()">✕</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="shell">
+
+<!-- ======================================================== SIDEBAR -->
+<aside class="sidebar">
+  <a href="{% url 'home' %}" class="sidebar-brand">
+    <div class="brand-mark"><span>MC</span></div>
+    <span class="brand-txt">Manu<em>Core</em></span>
+  </a>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Menu Utama</div>
+    <a href="#" id="nav-dashboard" class="nav-item" onclick="goto('dashboard',this);return false;">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard
+    </a>
+    <a href="#" id="nav-requests" class="nav-item" onclick="goto('requests',this);return false;">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>Requests
+      {% if pending_req > 0 %}<span class="nav-badge">{{ pending_req }}</span>{% endif %}
+    </a>
+    <a href="#" id="nav-workorders" class="nav-item" onclick="goto('workorders',this);return false;">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>Production Orders
+    </a>
+    <div class="nav-section-label" style="margin-top:1.5rem;">Data</div>
+    <a href="#" id="nav-users" class="nav-item" onclick="goto('users',this);return false;">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Staff Users
+    </a>
+    <a href="#" id="nav-clients" class="nav-item" onclick="goto('clients',this);return false;">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Clients
+    </a>
+    <div class="nav-section-label" style="margin-top:1.5rem;">Produksi</div>
+    <a href="#" id="nav-prodlog" class="nav-item" onclick="goto('prodlog',this);return false;">
+      <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Production Log
+    </a>
+    <a href="#" id="nav-rejectlog" class="nav-item" onclick="goto('rejectlog',this);return false;">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>Reject Log
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">{{ logged_display|slice:":2"|upper }}</div>
+      <div class="sb-info">
+        <div class="sb-name">{{ logged_display }}</div>
+        <div class="sb-role">{{ logged_role|capfirst }}</div>
+      </div>
+      <a href="{% url 'logout' %}" class="sb-logout" title="Logout">
+        <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- ======================================================== MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-bc">
+      <span class="bc-item">ManuCore</span><span class="bc-sep">›</span>
+      <span class="bc-item">Admin</span><span class="bc-sep">›</span>
+      <span class="bc-item cur" id="bcCur">Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <span class="tb-clock" id="clock">--:--:--</span>
+      <div class="tb-pill"><span class="dot"></span>Sistem Online</div>
+      <div class="tb-notif">
+        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        {% if pending_req > 0 %}<div class="tb-ndot"></div>{% endif %}
+      </div>
+    </div>
+  </header>
+
+  <div class="content" id="content">
+
+  <!-- ====================================================== DASHBOARD -->
+  <div id="p-dashboard">
+    <div class="pg-header">
+      <div>
+        <div class="pg-eyebrow">Overview</div>
+        <h1 class="pg-title">Admin <em>Dashboard</em></h1>
+        <p class="pg-sub">Selamat datang, <strong>{{ logged_display }}</strong>. Berikut ringkasan operasional hari ini.</p>
+      </div>
+      <button class="btn primary" onclick="goto('requests',null)">Lihat Requests →</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card accent">
+        <div class="sc-hdr"><span class="sc-label">Total Requests</span>
+          <div class="sc-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg></div></div>
+        <div class="sc-val" data-count="{{ total_req }}">{{ total_req }}<em> req</em></div>
+        <div class="sc-foot"><span class="sc-sub">Semua request masuk</span></div>
+        <div class="sc-subrow">
+          <div class="sc-subitem"><div class="sc-subnum amber">{{ pending_req }}</div><div class="sc-sublabel">Pending</div></div>
+          <div class="sc-subitem"><div class="sc-subnum green">{{ approved_req }}</div><div class="sc-sublabel">Approved</div></div>
+          <div class="sc-subitem"><div class="sc-subnum red">{{ rejected_req }}</div><div class="sc-sublabel">Rejected</div></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-hdr"><span class="sc-label">Production Orders</span>
+          <div class="sc-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div></div>
+        <div class="sc-val" data-count="{{ total_wo }}">{{ total_wo }}</div>
+        <div class="sc-foot"><span class="sc-sub">Total production order</span><span class="pill up">{{ active_wo }} Aktif</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-hdr"><span class="sc-label">Total Produksi</span>
+          <div class="sc-icon"><svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg></div></div>
+        <div class="sc-val" data-count="{{ total_produced }}">{{ total_produced }}<em> unit</em></div>
+        <div class="sc-foot"><span class="sc-sub">Dari Production Log</span><span class="pill up">↑ On Track</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-hdr"><span class="sc-label">Total Reject</span>
+          <div class="sc-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg></div></div>
+        <div class="sc-val" data-count="{{ total_reject }}">{{ total_reject }}<em> unit</em></div>
+        <div class="sc-foot"><span class="sc-sub">Dari Reject Log</span><span class="pill down">{{ reject_rate }}% Rate</span></div>
+      </div>
+    </div>
+    <!-- preview requests -->
+    <div class="sec-hdr"><span class="sec-title">Request Terbaru</span><a href="#" class="sec-link" onclick="goto('requests',null);return false;">Lihat Semua</a></div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>#</th><th>Produk</th><th>Client</th><th>Qty</th><th>Status</th><th>Tanggal</th></tr></thead>
+      <tbody>
+        {% for r in requests|slice:":5" %}
+        <tr><td class="td-mono">{{ r.id|slice:"-6"|upper }}</td><td class="td-name">{{ r.product_name|default:"—" }}</td><td class="td-mono">{{ r.company_name|default:"—" }}</td><td class="td-mono">{{ r.quantity|default:"—" }}</td><td><span class="badge {{ r.status }}">{{ r.status|capfirst }}</span></td><td class="td-mono">{{ r.created_at|date:"d/m/Y" }}</td></tr>
+        {% empty %}<tr><td colspan="6" style="text-align:center;padding:2rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada request</td></tr>
+        {% endfor %}
+      </tbody></table>
+    </div>
+    <!-- preview production orders -->
+    <div class="sec-hdr"><span class="sec-title">Production Orders Aktif</span><a href="#" class="sec-link" onclick="goto('workorders',null);return false;">Lihat Semua</a></div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>#</th><th>Produk</th><th>Qty</th><th>Operator</th><th>Status</th><th>Mulai</th><th>Selesai</th></tr></thead>
+      <tbody>
+        {% for wo in work_orders|slice:":5" %}
+        <tr><td class="td-mono">PO-{{ wo.id|slice:"-5"|upper }}</td><td class="td-name">{{ wo.product_name }}</td><td class="td-mono">{{ wo.quantity }}</td><td class="td-mono">{{ wo.operator_name }}</td><td><span class="badge {{ wo.status }}">{{ wo.status|capfirst }}</span></td><td class="td-mono">{{ wo.start_date|default:"—" }}</td><td class="td-mono">{{ wo.end_date|default:"—" }}</td></tr>
+        {% empty %}<tr><td colspan="7" style="text-align:center;padding:2rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada production order</td></tr>
+        {% endfor %}
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ====================================================== REQUESTS -->
+  <div id="p-requests" style="display:none;">
+    <div class="pg-header">
+      <div><div class="pg-eyebrow">Manajemen</div><h1 class="pg-title">Request <em>Produk</em></h1>
+      <p class="pg-sub">Klik Detail untuk melihat gambar teknik, spesifikasi, dan mengambil keputusan Approve / Reject.</p></div>
+    </div>
+    <div class="ftabs">
+      <button class="ftab active" onclick="filterReq('all',this)">Semua ({{ total_req }})</button>
+      <button class="ftab" onclick="filterReq('pending',this)">Pending ({{ pending_req }})</button>
+      <button class="ftab" onclick="filterReq('approved',this)">Approved ({{ approved_req }})</button>
+      <button class="ftab" onclick="filterReq('rejected',this)">Rejected ({{ rejected_req }})</button>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-bar">
+        <div class="tbl-bar-l"><span class="tbl-bar-title">Requests</span><span class="tbl-count">{{ total_req }} entri</span></div>
+        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari produk / client..." oninput="ft(this,'t-req')"></div>
+      </div>
+      <table id="t-req">
+        <thead><tr><th>ID</th><th>Produk</th><th>Client</th><th>Perusahaan</th><th>Qty</th><th>File</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr></thead>
+        <tbody>
+          {% for r in requests %}
+          <tr data-status="{{ r.status }}">
+            <td class="td-mono">{{ r.id|slice:"-6"|upper }}</td>
+            <td class="td-name">{{ r.product_name|default:"—" }}</td>
+            <td class="td-mono">{{ r.client_name|default:"—" }}</td>
+            <td class="td-mono">{{ r.company_name|default:"—" }}</td>
+            <td class="td-mono">{{ r.quantity|default:"—" }}</td>
+            <td class="td-mono">{% if r.drawing_file %}<span style="color:#27AE60;">📎 Ada</span>{% else %}—{% endif %}</td>
+            <td><span class="badge {{ r.status }}">{{ r.status|capfirst }}</span></td>
+            <td class="td-mono">{{ r.created_at|date:"d/m/Y" }}</td>
+            <td>
+              <div class="td-act">
+                <button class="btn ghost" onclick="openReqDetail(
+                  '{{ r.id }}',
+                  '{{ r.product_name|default:"—"|escapejs }}',
+                  '{{ r.client_name|default:"—"|escapejs }}',
+                  '{{ r.company_name|default:"—"|escapejs }}',
+                  '{{ r.quantity|default:"—" }}',
+                  '{{ r.description|default:"—"|escapejs }}',
+                  '{{ r.status }}',
+                  '{{ r.admin_note|default:""|escapejs }}',
+                  '{{ r.drawing_file|default:""|escapejs }}',
+                  '{{ r.created_at|date:"d/m/Y H:i" }}'
+                )">Detail</button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada request masuk</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====================================================== PRODUCTION ORDERS -->
+  <div id="p-workorders" style="display:none;">
+    <div class="pg-header">
+      <div><div class="pg-eyebrow">Produksi</div><h1 class="pg-title">Production <em>Orders</em></h1>
+      <p class="pg-sub">Production order dibuat otomatis saat request diapprove. Assign operator & atur jadwal di sini.</p></div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-bar">
+        <div class="tbl-bar-l"><span class="tbl-bar-title">Production Orders</span><span class="tbl-count">{{ total_wo }} entri</span></div>
+        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari produk / operator..." oninput="ft(this,'t-wo')"></div>
+      </div>
+      <table id="t-wo">
+        <thead><tr><th>ID</th><th>Produk</th><th>Qty</th><th>Operator</th><th>Status</th><th>Mulai</th><th>Selesai</th><th>Aksi</th></tr></thead>
+        <tbody>
+          {% for wo in work_orders %}
+          <tr>
+            <td class="td-mono">PO-{{ wo.id|slice:"-5"|upper }}</td>
+            <td class="td-name">{{ wo.product_name }}</td>
+            <td class="td-mono">{{ wo.quantity }}</td>
+            <td class="td-mono">{{ wo.operator_name }}</td>
+            <td><span class="badge {{ wo.status }}">{{ wo.status|capfirst }}</span></td>
+            <td class="td-mono">{{ wo.start_date|default:"—" }}</td>
+            <td class="td-mono">{{ wo.end_date|default:"—" }}</td>
+            <td>
+              <div class="td-act">
+                <button class="btn ghost" onclick="openPODetail(
+                  '{{ wo.id }}',
+                  '{{ wo.product_name|escapejs }}',
+                  '{{ wo.quantity }}',
+                  '{{ wo.assigned_to|default:""|escapejs }}',
+                  '{{ wo.operator_name|escapejs }}',
+                  '{{ wo.status }}',
+                  '{{ wo.start_date|default:"" }}',
+                  '{{ wo.end_date|default:"" }}'
+                )">Detail / Assign</button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada production order. Approve request terlebih dahulu.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====================================================== STAFF USERS -->
+  <div id="p-users" style="display:none;">
+    <div class="pg-header">
+      <div><div class="pg-eyebrow">Manajemen</div><h1 class="pg-title">Staff <em>Users</em></h1>
+      <p class="pg-sub">Kelola akun operator dan admin sistem. (Collection: <code>staff_users</code>)</p></div>
+      <button class="btn primary" onclick="openUserCreate()">+ Tambah User</button>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-bar">
+        <div class="tbl-bar-l"><span class="tbl-bar-title">Staff Users</span><span class="tbl-count">{{ users|length }} user</span></div>
+        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari username / role..." oninput="ft(this,'t-usr')"></div>
+      </div>
+      <table id="t-usr">
+        <thead><tr><th>#</th><th>Username</th><th>Role</th><th>Dibuat</th><th>Aksi</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td class="td-mono">USR-{{ forloop.counter|stringformat:"03d" }}</td>
+            <td class="td-name" style="font-size:13px;">{{ u.username }}</td>
+            <td>{% if u.role == 'admin' %}<span class="badge approved">Admin</span>{% else %}<span class="badge active">Operator</span>{% endif %}</td>
+            <td class="td-mono">{{ u.created_at|date:"d/m/Y"|default:"—" }}</td>
+            <td>
+              <div class="td-act">
+                <button class="btn ghost" onclick="openUserEdit('{{ u.id }}','{{ u.username|escapejs }}','{{ u.role }}')">Edit</button>
+                <form method="POST" action="{% url 'user_delete' u.id %}" style="display:inline;" onsubmit="return confirm('Hapus user {{ u.username }}?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn danger">Hapus</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada staff user</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====================================================== CLIENTS -->
+  <div id="p-clients" style="display:none;">
+    <div class="pg-header">
+      <div><div class="pg-eyebrow">Data</div><h1 class="pg-title">Data <em>Clients</em></h1>
+      <p class="pg-sub">Daftar semua client yang terdaftar. (Collection: <code>client</code>)</p></div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-bar">
+        <div class="tbl-bar-l"><span class="tbl-bar-title">Clients</span><span class="tbl-count">{{ clients|length }} client</span></div>
+        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari nama / email..." oninput="ft(this,'t-cli')"></div>
+      </div>
+      <table id="t-cli">
+        <thead><tr><th>#</th><th>Nama Lengkap</th><th>Perusahaan</th><th>Email</th><th>Daftar</th></tr></thead>
+        <tbody>
+          {% for c in clients %}
+          <tr>
+            <td class="td-mono">CLT-{{ forloop.counter|stringformat:"03d" }}</td>
+            <td class="td-name" style="font-size:12px;">{{ c.nama_depan }} {{ c.nama_belakang }}</td>
+            <td class="td-mono">{{ c.company_name|default:"—" }}</td>
+            <td class="td-mono">{{ c.email }}</td>
+            <td class="td-mono">{{ c.created_at|date:"d/m/Y"|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada client terdaftar</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====================================================== PRODUCTION LOG -->
+  <div id="p-prodlog" style="display:none;">
+    <div class="pg-header">
+      <div><div class="pg-eyebrow">Produksi</div><h1 class="pg-title">Production <em>Log</em></h1>
+      <p class="pg-sub">Log progres produksi oleh operator. Total diproduksi: <strong>{{ total_produced }} unit</strong>. (Collection: <code>production_log</code>)</p></div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-bar">
+        <div class="tbl-bar-l"><span class="tbl-bar-title">Production Log</span><span class="tbl-count">{{ prod_logs|length }} entri</span></div>
+        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari WO / operator..." oninput="ft(this,'t-pl')"></div>
+      </div>
+      <table id="t-pl">
+        <thead><tr><th>Work Order ID</th><th>Operator</th><th>Qty Done</th><th>Tanggal</th><th>Catatan</th></tr></thead>
+        <tbody>
+          {% for pl in prod_logs %}
+          <tr>
+            <td class="td-mono">{{ pl.work_order_id|default:"—" }}</td>
+            <td class="td-mono">{{ pl.operator_name }}</td>
+            <td><span class="badge approved">{{ pl.quantity_done }} unit</span></td>
+            <td class="td-mono">{{ pl.date|date:"d/m/Y"|default:"—" }}</td>
+            <td style="font-size:.8rem;color:var(--mid-gray);">{{ pl.note|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Belum ada log produksi</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====================================================== REJECT LOG -->
+  <div id="p-rejectlog" style="display:none;">
+    <div class="pg-header">
+      <div><div class="pg-eyebrow">Quality Control</div><h1 class="pg-title">Reject <em>Log</em></h1>
+      <p class="pg-sub">Unit yang gagal QC. Total: <strong>{{ total_reject }} unit</strong> ({{ reject_rate }}% dari produksi). (Collection: <code>reject_log</code>)</p></div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-bar">
+        <div class="tbl-bar-l"><span class="tbl-bar-title">Reject Log</span><span class="tbl-count">{{ reject_logs|length }} entri</span></div>
+        <div class="tbl-bar-r"><input class="tbl-search" type="text" placeholder="Cari WO / alasan..." oninput="ft(this,'t-rl')"></div>
+      </div>
+      <table id="t-rl">
+        <thead><tr><th>Work Order ID</th><th>Qty Reject</th><th>Alasan</th><th>Tanggal</th></tr></thead>
+        <tbody>
+          {% for rl in reject_logs %}
+          <tr>
+            <td class="td-mono">{{ rl.work_order_id|default:"—" }}</td>
+            <td><span class="badge rejected">{{ rl.quantity_reject }} unit</span></td>
+            <td style="font-size:.875rem;">{{ rl.reason|default:"—" }}</td>
+            <td class="td-mono">{{ rl.date|date:"d/m/Y"|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:10px;color:var(--light-gray);">● Tidak ada reject</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ====================================================== MODAL: REQUEST DETAIL -->
+<div class="modal-ov" id="modalReq">
+  <div class="modal-box" style="width:560px;">
+    <button class="modal-x" onclick="closeModal('modalReq')">✕</button>
+    <div class="modal-title">Detail <em>Request</em></div>
+    <div class="dg">
+      <div class="df"><label>ID</label><div class="val" id="rd-id"></div></div>
+      <div class="df"><label>Tanggal</label><div class="val" id="rd-date"></div></div>
+      <div class="df"><label>Nama Produk</label><div class="val" id="rd-product"></div></div>
+      <div class="df"><label>Quantity</label><div class="val" id="rd-qty"></div></div>
+      <div class="df"><label>Client</label><div class="val" id="rd-client"></div></div>
+      <div class="df"><label>Perusahaan</label><div class="val" id="rd-company"></div></div>
+      <div class="df full"><label>Deskripsi / Spesifikasi</label><div class="val" id="rd-desc"></div></div>
+      <div class="df full"><label>Status</label><div class="val" id="rd-status"></div></div>
+      <div class="df full" id="rd-note-row" style="display:none;">
+        <label>Alasan Reject (Admin Note)</label>
+        <div class="val" id="rd-note" style="color:var(--red);"></div>
+      </div>
+    </div>
+    <!-- file -->
+    <div class="file-box" id="rd-file-box">
+      <div class="ficon">📄</div>
+      <div id="rd-fname">Tidak ada file</div>
+      <div style="margin-top:1rem;">
+        <a id="rd-dl-btn" href="#" target="_blank" class="btn primary" style="display:none;">↓ Download File</a>
+      </div>
+    </div>
+    <!-- actions (hanya jika pending) -->
+    <div id="rd-actions" style="display:none;">
+      <form method="POST" id="form-approve">{% csrf_token %}
+        <button type="submit" class="btn primary" style="width:100%;margin-bottom:.75rem;">✔ Approve Request — Buat Production Order</button>
+      </form>
+      <div class="reject-zone">
+        <label>Alasan Penolakan (wajib diisi)</label>
+        <form method="POST" id="form-reject">{% csrf_token %}
+          <textarea name="admin_note" id="rd-reject-note" placeholder="Contoh: Mesin tidak mendukung dimensi yang diminta..."></textarea>
+          <div style="margin-top:.75rem;">
+            <button type="submit" class="btn danger" style="width:100%;">✖ Reject Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('modalReq')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================== MODAL: PRODUCTION ORDER -->
+<div class="modal-ov" id="modalPO">
+  <div class="modal-box">
+    <button class="modal-x" onclick="closeModal('modalPO')">✕</button>
+    <div class="modal-title">Production <em>Order</em></div>
+    <div class="dg" style="margin-bottom:1rem;">
+      <div class="df"><label>PO ID</label><div class="val" id="po-id"></div></div>
+      <div class="df"><label>Status Saat Ini</label><div class="val" id="po-status-disp"></div></div>
+      <div class="df"><label>Produk</label><div class="val" id="po-product"></div></div>
+      <div class="df"><label>Quantity</label><div class="val" id="po-qty"></div></div>
+      <div class="df full"><label>Operator Saat Ini</label><div class="val" id="po-op-current"></div></div>
+    </div>
+    <form method="POST" id="form-po">
+      {% csrf_token %}
+      <div class="mf">
+        <label>Assign / Ganti Operator</label>
+        <select name="operator_id" id="po-op-sel">
+          <option value="">— Pilih Operator —</option>
+          {% for op in operators %}
+          <option value="{{ op.id }}">{{ op.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mf">
+        <label>Update Status</label>
+        <select name="status" id="po-status-sel">
+          <option value="pending">Pending</option>
+          <option value="active">Active</option>
+          <option value="in_progress">In Progress</option>
+          <option value="done">Done</option>
+          <option value="paused">Paused</option>
+        </select>
+      </div>
+      <div class="mgrid2">
+        <div class="mf"><label>Tanggal Mulai</label><input type="date" name="start_date" id="po-start"></div>
+        <div class="mf"><label>Tanggal Selesai</label><input type="date" name="end_date" id="po-end"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" onclick="closeModal('modalPO')">Batal</button>
+        <button type="submit" class="btn primary">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ====================================================== MODAL: USER -->
+<div class="modal-ov" id="modalUser">
+  <div class="modal-box">
+    <button class="modal-x" onclick="closeModal('modalUser')">✕</button>
+    <div class="modal-title" id="modalUserTitle">Tambah <em>User</em></div>
+    <form method="POST" id="form-user">
+      {% csrf_token %}
+      <div class="mf">
+        <label>Username</label>
+        <input type="text" name="username" id="u-username" placeholder="contoh: budi.santoso" required autocomplete="off">
+      </div>
+      <div class="mf">
+        <label>Password</label>
+        <input type="password" name="password" id="u-password" placeholder="Min. 8 karakter" autocomplete="new-password">
+        <div class="hint" id="u-pass-hint"></div>
+      </div>
+      <div class="mf">
+        <label>Role</label>
+        <select name="role" id="u-role">
+          <option value="operator">Operator</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" onclick="closeModal('modalUser')">Batal</button>
+        <button type="submit" class="btn primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="{% static 'admin/main.js' %}"></script>
+<script>
+'use strict';
+
+// URL refs dari Django
+const URL_USER_CREATE = "{% url 'user_create' %}";
+const URL_USER_UPDATE = "{% url 'user_update' 'PLACEHOLDER' %}";
+const URL_REQ_APPROVE = "{% url 'request_approve' 'PLACEHOLDER' %}";
+const URL_REQ_REJECT  = "{% url 'request_reject'  'PLACEHOLDER' %}";
+const URL_REQ_DL      = "{% url 'request_download' 'PLACEHOLDER' %}";
+const URL_PO_ASSIGN   = "{% url 'po_assign' 'PLACEHOLDER' %}";
+
+// ── CURSOR ──
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => {
+  mx=e.clientX; my=e.clientY;
+  cur.style.left=mx+'px'; cur.style.top=my+'px';
+});
+document.addEventListener('mouseover', e => {
+  if(e.target.matches('a,button,input,select,textarea,.nav-item,.btn,.ftab'))
+    ring.classList.add('hovered');
+});
+document.addEventListener('mouseout', e => {
+  if(e.target.matches('a,button,input,select,textarea,.nav-item,.btn,.ftab'))
+    ring.classList.remove('hovered');
+});
+(function anim() {
+  rx+=(mx-rx)*.13; ry+=(my-ry)*.13;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(anim);
+})();
+
+// ── CLOCK ──
+function tick() {
+  const n=new Date(), p=v=>String(v).padStart(2,'0');
+  document.getElementById('clock').textContent = p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+}
+tick(); setInterval(tick, 1000);
+
+// ── PAGE NAV ──
+const PAGES  = ['dashboard','requests','workorders','users','clients','prodlog','rejectlog'];
+const LABELS = {
+  dashboard:'Dashboard', requests:'Requests', workorders:'Production Orders',
+  users:'Staff Users', clients:'Clients', prodlog:'Production Log', rejectlog:'Reject Log'
+};
+function goto(id, navEl) {
+  PAGES.forEach(p => {
+    const el = document.getElementById('p-'+p);
+    if(el) el.style.display = 'none';
+  });
+  const t = document.getElementById('p-'+id);
+  if(t) t.style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
+  if(navEl) {
+    navEl.classList.add('active');
+  } else {
+    const ni = document.getElementById('nav-'+id);
+    if(ni) ni.classList.add('active');
+  }
+  document.getElementById('bcCur').textContent = LABELS[id] || id;
+  document.getElementById('content').scrollTo({top:0, behavior:'smooth'});
+}
+// Buka tab dari ?tab= query param (setelah redirect CRUD)
+(function() {
+  const tab = new URLSearchParams(window.location.search).get('tab') || 'dashboard';
+  goto(tab, null);
+})();
+
+// ── TABLE FILTER ──
+function ft(inp, tid) {
+  const q = inp.value.toLowerCase();
+  document.querySelectorAll('#'+tid+' tbody tr').forEach(r => {
+    // jangan hapus filter status
+    if(r.dataset.hidden === 'status') return;
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ── FILTER REQUEST TABS ──
+function filterReq(status, btn) {
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#t-req tbody tr').forEach(r => {
+    if(status === 'all' || r.dataset.status === status) {
+      r.style.display = '';
+      delete r.dataset.hidden;
+    } else {
+      r.style.display = 'none';
+      r.dataset.hidden = 'status';
+    }
+  });
+}
+
+// ── COUNTER ANIMATION ──
+window.addEventListener('load', () => {
+  document.querySelectorAll('.sc-val[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count) || 0;
+    const suffix = el.innerHTML.replace(/[\d]/g, '');
+    let c = 0;
+    const step = Math.max(1, Math.ceil(target / 50));
+    const t = setInterval(() => {
+      c = Math.min(c + step, target);
+      el.innerHTML = c + suffix;
+      if(c >= target) clearInterval(t);
+    }, 20);
+  });
+});
+
+// ── AUTO DISMISS NOTIF (5 detik) ──
+document.querySelectorAll('.notif-bar').forEach(el => {
+  setTimeout(() => {
+    el.style.transition = 'opacity .4s, transform .4s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(20px)';
+    setTimeout(() => el.remove(), 400);
+  }, 5000);
+});
+
+// ── MODAL HELPERS ──
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-ov').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape')
+    document.querySelectorAll('.modal-ov.open').forEach(m => m.classList.remove('open'));
+});
+
+// ── MODAL: REQUEST DETAIL ──
+function openReqDetail(id, product, client, company, qty, desc, status, note, filePath, createdAt) {
+  document.getElementById('rd-id').textContent        = id.slice(-6).toUpperCase();
+  document.getElementById('rd-date').textContent      = createdAt || '—';
+  document.getElementById('rd-product').textContent   = product   || '—';
+  document.getElementById('rd-qty').textContent       = qty       || '—';
+  document.getElementById('rd-client').textContent    = client    || '—';
+  document.getElementById('rd-company').textContent   = company   || '—';
+  document.getElementById('rd-desc').textContent      = desc      || '—';
+  document.getElementById('rd-status').innerHTML      =
+    '<span class="badge '+status+'">'+status.charAt(0).toUpperCase()+status.slice(1)+'</span>';
+
+  // Admin note
+  const noteRow = document.getElementById('rd-note-row');
+  if(note) {
+    noteRow.style.display = 'block';
+    document.getElementById('rd-note').textContent = note;
+  } else {
+    noteRow.style.display = 'none';
+  }
+
+  // File
+  const dlBtn = document.getElementById('rd-dl-btn');
+  if(filePath) {
+    document.getElementById('rd-fname').textContent = filePath.split('/').pop();
+    dlBtn.style.display = 'inline-flex';
+    dlBtn.href = URL_REQ_DL.replace('PLACEHOLDER', id);
+  } else {
+    document.getElementById('rd-fname').textContent = 'Tidak ada file yang diunggah';
+    dlBtn.style.display = 'none';
+  }
+
+  // Aksi (hanya untuk pending)
+  const actDiv = document.getElementById('rd-actions');
+  if(status === 'pending') {
+    actDiv.style.display = 'block';
+    document.getElementById('form-approve').action = URL_REQ_APPROVE.replace('PLACEHOLDER', id);
+    document.getElementById('form-reject').action  = URL_REQ_REJECT.replace('PLACEHOLDER', id);
+    document.getElementById('rd-reject-note').value = '';
+  } else {
+    actDiv.style.display = 'none';
+  }
+
+  document.getElementById('modalReq').classList.add('open');
+}
+
+// ── MODAL: PRODUCTION ORDER ──
+function openPODetail(id, product, qty, opId, opName, status, startDate, endDate) {
+  document.getElementById('po-id').textContent         = 'PO-'+id.slice(-5).toUpperCase();
+  document.getElementById('po-product').textContent    = product;
+  document.getElementById('po-qty').textContent        = qty;
+  document.getElementById('po-op-current').textContent = opName || 'Belum ditugaskan';
+  document.getElementById('po-status-disp').innerHTML  =
+    '<span class="badge '+status+'">'+status.charAt(0).toUpperCase()+status.slice(1)+'</span>';
+  document.getElementById('po-status-sel').value = status;
+  document.getElementById('po-start').value      = startDate || '';
+  document.getElementById('po-end').value        = endDate   || '';
+  if(opId) document.getElementById('po-op-sel').value = opId;
+  document.getElementById('form-po').action = URL_PO_ASSIGN.replace('PLACEHOLDER', id);
+  document.getElementById('modalPO').classList.add('open');
+}
+
+// ── MODAL: USER CREATE ──
+function openUserCreate() {
+  document.getElementById('modalUserTitle').innerHTML = 'Tambah <em>User</em>';
+  document.getElementById('form-user').action         = URL_USER_CREATE;
+  document.getElementById('u-username').value         = '';
+  document.getElementById('u-password').value         = '';
+  document.getElementById('u-password').required      = true;
+  document.getElementById('u-role').value             = 'operator';
+  document.getElementById('u-pass-hint').textContent  = '';
+  document.getElementById('modalUser').classList.add('open');
+}
+
+// ── MODAL: USER EDIT ──
+function openUserEdit(id, username, role) {
+  document.getElementById('modalUserTitle').innerHTML  = 'Edit <em>User</em>';
+  document.getElementById('form-user').action          = URL_USER_UPDATE.replace('PLACEHOLDER', id);
+  document.getElementById('u-username').value          = username;
+  document.getElementById('u-password').value          = '';
+  document.getElementById('u-password').required       = false;
+  document.getElementById('u-role').value              = role;
+  document.getElementById('u-pass-hint').textContent   = 'Kosongkan jika tidak ingin mengganti password';
+  document.getElementById('modalUser').classList.add('open');
+}
+</script>
+</body>
+</html>
