@@ -615,23 +615,24 @@ def production_log_create(request):
             notif(request, "error", "Request tidak ditemukan.")
             return redirect("operator_page")
 
-        # Insert production log
-        production_log_collection.insert_one({
-            "request_id":    request_id,
-            "operator_id":   operator_id,
-            "quantity_done": quantity_done,
-            "note":          note,
-            "date":          datetime.now(),
-        })
+        # Update or create production log (one per request_id only - no accumulation)
+        production_log_collection.update_one(
+            {"request_id": request_id},
+            {"$set": {
+                "operator_id":   operator_id,
+                "quantity_done": quantity_done,
+                "note":          note,
+                "date":          datetime.now(),
+            }},
+            upsert=True  # Create if not exists, update if exists
+        )
 
-        # Update production_order: accumulate quantity_done & recalc progress
+        # Update production_order with the quantity_done value (not accumulated)
         wo = production_orders_collection.find_one({"request_id": request_id})
         if wo:
             wo_qty = wo.get("quantity", 0)
-
-            # Hitung total dari SEMUA log (bukan hanya log baru)
-            all_logs     = list(production_log_collection.find({"request_id": request_id}))
-            total_done   = sum(int(pl.get("quantity_done", 0) or 0) for pl in all_logs)
+            # Use the current quantity_done directly (not summed)
+            total_done   = quantity_done
             progress_pct = round((total_done / wo_qty * 100)) if wo_qty > 0 else 0
             new_status   = "done" if total_done >= wo_qty else "in_progress"
 
@@ -848,13 +849,14 @@ def client_page(request):
     }).sort("created_at", -1):
         to_id(po)
 
-        # Hitung total quantity_done dari semua production_log
+        # Get quantity_done from the single production_log entry (not accumulated)
         request_id_str = po.get("request_id", "")
         quantity_done  = 0
 
         if request_id_str:
-            for pl in production_log_collection.find({"request_id": request_id_str}):
-                quantity_done += int(pl.get("quantity_done", 0) or 0)
+            pl = production_log_collection.find_one({"request_id": request_id_str})
+            if pl:
+                quantity_done = int(pl.get("quantity_done", 0) or 0)
 
         po["quantity_done"] = quantity_done
 
