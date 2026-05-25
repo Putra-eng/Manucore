@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import FileResponse, Http404
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from .db_connection import (
     staff_users_collection,
     clients_collection,
@@ -205,14 +205,34 @@ def admin_page(request):
                 op_name = op["username"] if op else str(pl["operator_id"])
         pl["operator_name"] = op_name
 
-        # Info request (nama produk)
+        # Info request (nama produk) + progress
         product_name = "—"
+        total_quantity = 0
+        progress_pct = 0
+        status = "pending"
+        
         if pl.get("request_id"):
             oid = safe_object_id(pl["request_id"])
             if oid:
                 req = requests_collection.find_one({"_id": oid})
-                product_name = req.get("product_name", "—") if req else "—"
+                if req:
+                    product_name = req.get("product_name", "—")
+                    total_quantity = req.get("quantity", 0)
+                    
+                    # Get production order untuk tau total quantity_done dan status
+                    wo = production_orders_collection.find_one({"request_id": pl["request_id"]})
+                    if wo:
+                        total_done = wo.get("quantity_done", pl.get("quantity_done", 0))
+                        progress_pct = round((total_done / total_quantity * 100)) if total_quantity > 0 else 0
+                        status = wo.get("status", "pending")
+                    else:
+                        total_done = pl.get("quantity_done", 0)
+                        progress_pct = round((total_done / total_quantity * 100)) if total_quantity > 0 else 0
+        
         pl["product_name"] = product_name
+        pl["total_quantity"] = total_quantity
+        pl["progress_pct"] = progress_pct
+        pl["status"] = status
 
         prod_logs.append(pl)
 
@@ -397,6 +417,7 @@ def request_reject(request, id):
     Admin reject request:
     1. Validasi admin_note wajib diisi
     2. Update status requests → 'rejected' + simpan admin_note
+    3. Catat di reject_log_collection
     """
     if request.method == "POST":
         admin_note = request.POST.get("admin_note", "").strip()
@@ -427,6 +448,14 @@ def request_reject(request, id):
                 "rejected_at": datetime.now(),
             }},
         )
+
+        # Catat di reject_log_collection
+        reject_log_collection.insert_one({
+            "request_id":      id,  # simpan sebagai string
+            "quantity_reject": req.get("quantity", 0),
+            "reason":          admin_note,
+            "date":            datetime.now(),
+        })
 
         prod_name = req.get("product_name", "—")
         notif(request, "success", f"Request '{prod_name}' ditolak. Alasan: {admin_note}")
@@ -498,7 +527,316 @@ def po_assign(request, id):
 # ============================================================
 
 def operator_page(request):
-    return render(request, "operator/operator.html")
+    """Operator dashboard - tampilkan work orders assigned ke operator ini."""
+    operator_id = request.session.get("user_id", "")
+    
+    if not operator_id:
+        return redirect("login")
+
+    # ── Get production orders yang assigned ke operator ini ──
+    work_orders = []
+    for wo in production_orders_collection.find({"assigned_to": operator_id}).sort("created_at", -1):
+        to_id(wo)
+        
+        # Join request info
+        product_name = "—"
+        quantity     = 0
+        drawing_file = None
+        request_id_str = None
+        
+        if wo.get("request_id"):
+            oid = safe_object_id(wo["request_id"])
+            if oid:
+                req = requests_collection.find_one({"_id": oid})
+                if req:
+                    product_name = req.get("product_name", "—")
+                    quantity     = req.get("quantity", 0)
+                    drawing_file = req.get("drawing_file")
+                    request_id_str = wo["request_id"]
+        
+        # Calculate progress percentage
+        quantity_done = wo.get("quantity_done", 0)
+        progress_pct = round((quantity_done / quantity * 100)) if quantity > 0 else 0
+        
+        wo["product_name"] = product_name
+        wo["quantity"]     = quantity
+        wo["quantity_done"] = quantity_done
+        wo["progress_pct"]  = progress_pct
+        wo["drawing_file"] = drawing_file
+        wo["request_id_str"] = request_id_str
+        work_orders.append(wo)
+
+    # ── Get production logs milik operator ini ──
+    prod_logs = []
+    for pl in production_log_collection.find({"operator_id": operator_id}).sort("date", -1):
+        to_id(pl)
+        
+        # Join request info (nama produk)
+        product_name = "—"
+        if pl.get("request_id"):
+            oid = safe_object_id(pl["request_id"])
+            if oid:
+                req = requests_collection.find_one({"_id": oid})
+                product_name = req.get("product_name", "—") if req else "—"
+        pl["product_name"] = product_name
+        prod_logs.append(pl)
+
+    total_produced = sum(int(pl.get("quantity_done", 0) or 0) for pl in prod_logs)
+    
+    # Get today's stats
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+    today_datetime = datetime.combine(today, datetime.min.time())
+    tomorrow_datetime = datetime.combine(tomorrow, datetime.min.time())
+    
+    # Units produced today
+    units_produced_today = sum(
+        int(pl.get("quantity_done", 0) or 0) 
+        for pl in prod_logs 
+        if pl.get("date") and pl["date"] >= today_datetime and pl["date"] < tomorrow_datetime
+    )
+    
+    # Reject count today
+    reject_logs_today = reject_log_collection.find({
+        "date": {"$gte": today_datetime, "$lt": tomorrow_datetime}
+    })
+    reject_count_today = sum(
+        int(rl.get("quantity_reject", 0) or 0) 
+        for rl in reject_logs_today
+    )
+    
+    # Active work orders count
+    work_orders_active_count = sum(1 for wo in work_orders if wo.get("status") in ["active", "in_progress", "pending"])
+
+    ctx = {
+        **get_session_ctx(request),
+        "work_orders":              work_orders,
+        "work_orders_active_count": work_orders_active_count,
+        "prod_logs":                prod_logs,
+        "total_produced":           total_produced,
+        "units_produced_today":     units_produced_today,
+        "reject_count_today":       reject_count_today,
+    }
+    return render(request, "operator/operator.html", ctx)
+
+
+# ============================================================
+# PRODUCTION LOG  →  collection: production_log
+# ============================================================
+
+def production_log_create(request):
+    """
+    Operator submit production log.
+    Fields: request_id, quantity_done, note
+    """
+    if request.method == "POST":
+        operator_id     = request.session.get("user_id", "")
+        request_id      = request.POST.get("request_id", "").strip()
+        quantity_done   = request.POST.get("quantity_done", 0)
+        note            = request.POST.get("note", "").strip()
+
+        if not operator_id:
+            notif(request, "error", "Session expired. Silahkan login kembali.")
+            return redirect("login")
+
+        if not request_id or not quantity_done:
+            notif(request, "error", "Request ID dan quantity harus diisi.")
+            return redirect("operator_page")
+
+        try:
+            quantity_done = int(quantity_done)
+            if quantity_done <= 0:
+                raise ValueError("Quantity harus lebih dari 0")
+        except (ValueError, TypeError):
+            notif(request, "error", "Quantity tidak valid.")
+            return redirect("operator_page")
+
+        # Validasi request_id exists
+        req_oid = safe_object_id(request_id)
+        if not req_oid:
+            notif(request, "error", "ID request tidak valid.")
+            return redirect("operator_page")
+
+        req = requests_collection.find_one({"_id": req_oid})
+        if not req:
+            notif(request, "error", "Request tidak ditemukan.")
+            return redirect("operator_page")
+
+        # Insert production log
+        production_log_collection.insert_one({
+            "request_id":    request_id,
+            "operator_id":   operator_id,
+            "quantity_done": quantity_done,
+            "note":          note,
+            "date":          datetime.now(),
+        })
+
+        # Update production order status jika quantity terpenuhi
+        wo = production_orders_collection.find_one({"request_id": request_id})
+        if wo:
+            wo_qty = wo.get("quantity", 0)
+            total_produced = quantity_done
+            
+            # Sum semua production logs untuk request ini
+            prod_logs = list(production_log_collection.find({"request_id": request_id}))
+            if prod_logs:
+                total_produced = sum(int(pl.get("quantity_done", 0) or 0) for pl in prod_logs)
+            
+            progress_pct = round((total_produced / wo_qty * 100)) if wo_qty > 0 else 0
+            new_status = "done" if total_produced >= wo_qty else "in_progress"
+            
+            production_orders_collection.update_one(
+                {"_id": wo["_id"]},
+                {"$set": {
+                    "quantity_done": total_produced,
+                    "progress": progress_pct,
+                    "status": new_status,
+                    "updated_at": datetime.now(),
+                }}
+            )
+
+        prod_name = req.get("product_name", "—")
+        notif(request, "success", f"Log produksi untuk '{prod_name}' sebanyak {quantity_done} unit berhasil dicatat.")
+
+    return redirect("operator_page")
+
+
+# ============================================================
+# PRODUCTION ORDER STATUS UPDATE  →  collection: production_orders
+# ============================================================
+
+def update_production_status(request, id):
+    """
+    Operator update status dari production order.
+    Fields: status, message (optional)
+    """
+    if request.method == "POST":
+        operator_id = request.session.get("user_id", "")
+        status      = request.POST.get("status", "").strip()
+        message     = request.POST.get("message", "").strip()
+
+        if not operator_id:
+            notif(request, "error", "Session expired. Silahkan login kembali.")
+            return redirect("login")
+
+        if not status or status not in ["pending", "in_progress", "paused", "done"]:
+            notif(request, "error", "Status tidak valid.")
+            return redirect("operator_page")
+
+        # Validasi wo id
+        wo_oid = safe_object_id(id)
+        if not wo_oid:
+            notif(request, "error", "ID production order tidak valid.")
+            return redirect("operator_page")
+
+        wo = production_orders_collection.find_one({"_id": wo_oid})
+        if not wo:
+            notif(request, "error", "Production order tidak ditemukan.")
+            return redirect("operator_page")
+
+        # Hanya operator yang assign ke WO ini yang bisa update
+        if wo.get("assigned_to") != operator_id:
+            notif(request, "error", "Anda tidak memiliki akses ke production order ini.")
+            return redirect("operator_page")
+
+        # Update status
+        update_data = {"status": status, "updated_at": datetime.now()}
+        if message:
+            update_data["operator_message"] = message
+
+        production_orders_collection.update_one(
+            {"_id": wo_oid},
+            {"$set": update_data}
+        )
+
+        notif(request, "success", f"Status production order berhasil diperbarui ke '{status}'.")
+
+    return redirect("operator_page")
+
+
+# ============================================================
+# REQUEST FILE DOWNLOAD - untuk operator
+# ============================================================
+
+def request_download_operator(request, id):
+    """Download file gambar teknik untuk operator (same as admin)."""
+    oid = safe_object_id(id)
+    if not oid:
+        raise Http404("ID tidak valid")
+
+    req = requests_collection.find_one({"_id": oid})
+    if not req:
+        raise Http404("Request tidak ditemukan")
+
+    file_path = req.get("drawing_file")
+    if not file_path:
+        raise Http404("File gambar teknik tidak tersedia untuk request ini")
+
+    full_path = os.path.join(settings.BASE_DIR, "media", file_path)
+    if not os.path.exists(full_path):
+        raise Http404("File tidak ditemukan di server. Mungkin sudah dihapus.")
+
+    return FileResponse(
+        open(full_path, "rb"),
+        as_attachment=True,
+        filename=os.path.basename(full_path),
+    )
+
+
+# ============================================================
+# REJECT LOG  →  collection: reject_log
+# ============================================================
+
+def reject_log_create(request):
+    """
+    Operator submit reject log.
+    Fields: request_id, quantity_reject, reason
+    """
+    if request.method == "POST":
+        operator_id      = request.session.get("user_id", "")
+        request_id       = request.POST.get("request_id", "").strip()
+        quantity_reject  = request.POST.get("quantity_reject", 0)
+        reason           = request.POST.get("reason", "").strip()
+
+        if not operator_id:
+            notif(request, "error", "Session expired. Silahkan login kembali.")
+            return redirect("login")
+
+        if not request_id or not quantity_reject or not reason:
+            notif(request, "error", "Request ID, quantity, dan alasan harus diisi.")
+            return redirect("operator_page")
+
+        try:
+            quantity_reject = int(quantity_reject)
+            if quantity_reject <= 0:
+                raise ValueError("Quantity harus lebih dari 0")
+        except (ValueError, TypeError):
+            notif(request, "error", "Quantity tidak valid.")
+            return redirect("operator_page")
+
+        # Validasi request_id exists
+        req_oid = safe_object_id(request_id)
+        if not req_oid:
+            notif(request, "error", "ID request tidak valid.")
+            return redirect("operator_page")
+
+        req = requests_collection.find_one({"_id": req_oid})
+        if not req:
+            notif(request, "error", "Request tidak ditemukan.")
+            return redirect("operator_page")
+
+        # Insert reject log
+        reject_log_collection.insert_one({
+            "request_id":      request_id,
+            "quantity_reject": quantity_reject,
+            "reason":          reason,
+            "date":            datetime.now(),
+        })
+
+        prod_name = req.get("product_name", "—")
+        notif(request, "success", f"Log reject untuk '{prod_name}' sebanyak {quantity_reject} unit berhasil dicatat.")
+
+    return redirect("operator_page")
 
 
 # ============================================================

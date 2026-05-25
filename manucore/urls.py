@@ -27,4 +27,14 @@ urlpatterns = [
 
     # Production Order actions  (production_orders)
     path("po/assign/<str:id>/", views.po_assign, name="po_assign"),
+    path("po/status/<str:id>/", views.update_production_status, name="update_production_status"),
+
+    # Production Log actions  (production_log)
+    path("prod-log/create/", views.production_log_create, name="production_log_create"),
+
+    # Reject Log actions  (reject_log)
+    path("reject-log/create/", views.reject_log_create, name="reject_log_create"),
+
+    # File download for operator
+    path("request/download-operator/<str:id>/", views.request_download_operator, name="request_download_operator"),
 ]
