@@ -4,24 +4,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ManuCore — Client Request</title>
+<title>ManuCore — Client Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'Landing/style.css' %}">
 <style>
-  /* Form specific styles matching the design */
+
+  /* ====================================================
+     BASE LAYOUT
+     ==================================================== */
   .form-hero {
     min-height: calc(100vh - 64px);
     background: var(--black);
     position: relative;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 4rem 2rem;
+    padding: 4rem 2rem 6rem;
   }
   .form-container {
-    max-width: 700px;
+    max-width: 740px;
     width: 100%;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.08);
@@ -32,15 +35,69 @@
   .form-container::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 3px;
-    height: 100%;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
     background: var(--red);
   }
-  .form-label {
+
+  /* ====================================================
+     TAB NAVIGATION
+     ==================================================== */
+  .tabs-header {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #555;
     font-family: var(--mono);
     font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.75rem 1.25rem 0.75rem 0;
+    margin-right: 1.5rem;
+    transition: all 0.2s;
+    position: relative;
+    bottom: -1px;
+  }
+  .tab-btn .tab-icon { font-size: 1rem; }
+  .tab-btn.active   { color: var(--red); border-bottom-color: var(--red); }
+  .tab-btn:hover:not(.active) { color: rgba(255,255,255,0.7); }
+  .tab-badge {
+    background: var(--red);
+    color: white;
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 8px;
+    line-height: 1.4;
+  }
+  .tab-badge.blue { background: rgba(33,150,243,0.8); }
+
+  .tab-content { display: none; }
+  .tab-content.active {
+    display: block;
+    animation: fadeSlideIn 0.25s ease;
+  }
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ====================================================
+     SECTION HEADERS
+     ==================================================== */
+  .form-label {
+    font-family: var(--mono);
+    font-size: 9px;
     color: var(--red);
     letter-spacing: 4px;
     text-transform: uppercase;
@@ -50,30 +107,34 @@
   .form-title {
     font-family: var(--display);
     font-weight: 800;
-    font-size: 2.5rem;
+    font-size: 2.4rem;
     color: var(--off-white);
     text-transform: uppercase;
     letter-spacing: -0.5px;
+    line-height: 1.1;
     margin-bottom: 0.5rem;
   }
   .form-subtitle {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: 0.88rem;
+    color: #555;
     margin-bottom: 2rem;
-    padding-bottom: 1rem;
+    padding-bottom: 1.5rem;
     border-bottom: 1px solid rgba(255,255,255,0.06);
+    line-height: 1.6;
   }
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
+
+  /* ====================================================
+     FORM STYLES
+     ==================================================== */
+  .form-group { margin-bottom: 1.5rem; }
   .form-group label {
     display: block;
     font-family: var(--display);
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--off-white);
+    color: rgba(255,255,255,0.7);
     margin-bottom: 0.5rem;
   }
   .form-group input,
@@ -86,95 +147,367 @@
     font-family: var(--body);
     font-size: 0.95rem;
     color: var(--off-white);
-    transition: all 0.2s ease;
+    transition: all 0.2s;
+    box-sizing: border-box;
+    border-radius: 0;
   }
   .form-group input:focus,
-  .form-group textarea:focus,
-  .form-group select:focus {
+  .form-group textarea:focus {
     outline: none;
     border-color: var(--red);
-    background: rgba(200,16,46,0.05);
+    background: rgba(200,16,46,0.04);
   }
   .form-group input::placeholder,
-  .form-group textarea::placeholder {
-    color: #444;
-  }
-  .form-group textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
-  .file-input-wrapper {
-    position: relative;
-  }
-  .file-input-wrapper input[type="file"] {
-    padding: 10px;
-    cursor: pointer;
-  }
+  .form-group textarea::placeholder { color: #333; }
+  .form-group textarea { resize: vertical; min-height: 100px; }
+  .file-input-wrapper input[type="file"] { padding: 10px; cursor: pointer; }
   .file-input-wrapper small {
     display: block;
     margin-top: 6px;
     font-family: var(--mono);
     font-size: 9px;
-    color: #555;
+    color: #444;
     letter-spacing: 1px;
   }
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
   .submit-btn {
     width: 100%;
     font-family: var(--display);
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     letter-spacing: 3px;
     text-transform: uppercase;
     color: white;
     background: var(--red);
     border: none;
     padding: 16px 32px;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
     cursor: pointer;
     clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-    transition: all 0.2s ease;
+    transition: all 0.2s;
   }
-  .submit-btn:hover {
-    background: var(--red-dark);
-    transform: translateY(-2px);
-  }
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+  .submit-btn:hover { background: #a00c25; transform: translateY(-1px); }
+
+  /* ====================================================
+     DJANGO MESSAGES
+     ==================================================== */
+  .alert {
+    padding: 11px 14px;
+    border-left: 3px solid;
     font-family: var(--mono);
     font-size: 11px;
-    color: #666;
-    text-decoration: none;
-    margin-top: 2rem;
-    transition: color 0.2s;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
-  .back-link:hover {
+  .alert-success { background: rgba(76,175,80,0.1);  border-color: #4caf50; color: #4caf50; }
+  .alert-error   { background: rgba(244,67,54,0.1);  border-color: #f44336; color: #f44336; }
+  .alert-warning { background: rgba(255,193,7,0.1);  border-color: #ffc107; color: #ffc107; }
+
+  /* ====================================================
+     ORDER LIST (Tab Riwayat)
+     ==================================================== */
+  .order-list {
+    display: flex; flex-direction: column; gap: 0.75rem;
+    max-height: 560px; overflow-y: auto; padding-right: 4px;
+  }
+  .order-list::-webkit-scrollbar { width: 4px; }
+  .order-list::-webkit-scrollbar-track { background: transparent; }
+  .order-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .order-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 1.1rem 1.25rem;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .order-card:hover { border-color: rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); }
+  .order-card-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 0.9rem;
+  }
+  .order-info h3 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--off-white);
+    margin: 0 0 0.2rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .order-id { font-family: var(--mono); font-size: 9px; color: #444; letter-spacing: 1px; }
+  .order-status {
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: 1.5px; padding: 4px 10px; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .status-pending     { background: rgba(255,193,7,0.15);  color: #ffc107; }
+  .status-approved    { background: rgba(33,150,243,0.15); color: #2196f3; }
+  .status-rejected    { background: rgba(244,67,54,0.15);  color: #f44336; }
+  .status-active      { background: rgba(33,150,243,0.15); color: #2196f3; }
+  .status-in_progress { background: rgba(33,150,243,0.15); color: #2196f3; }
+  .status-done        { background: rgba(76,175,80,0.15);  color: #4caf50; }
+  .status-completed   { background: rgba(76,175,80,0.15);  color: #4caf50; }
+
+  .order-card-body { display: flex; flex-direction: column; gap: 0.45rem; }
+  .order-detail { display: flex; justify-content: space-between; align-items: baseline; }
+  .detail-label { color: #444; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+  .detail-value { color: rgba(255,255,255,0.75); font-size: 0.88rem; font-weight: 500; }
+
+  .reject-note {
+    margin-top: 0.85rem;
+    padding: 0.6rem 0.9rem;
+    background: rgba(244,67,54,0.07);
+    border-left: 2px solid rgba(244,67,54,0.6);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: #f44336;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+  }
+  .download-link {
+    color: var(--red); font-family: var(--mono); font-size: 9px;
+    text-decoration: none; letter-spacing: 1px;
+  }
+  .download-link:hover { text-decoration: underline; }
+
+  /* ====================================================
+     PROGRESS CARDS (Tab Progres)
+     ==================================================== */
+  .progress-list {
+    display: flex; flex-direction: column; gap: 1.25rem;
+    max-height: 620px; overflow-y: auto; padding-right: 4px;
+  }
+  .progress-list::-webkit-scrollbar { width: 4px; }
+  .progress-list::-webkit-scrollbar-track { background: transparent; }
+  .progress-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .progress-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 1.5rem;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 2px;
+    background: var(--red);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.3s ease;
+  }
+  .progress-card:hover { border-color: rgba(200,16,46,0.3); background: rgba(255,255,255,0.035); }
+  .progress-card:hover::before { transform: scaleY(1); }
+
+  /* Card header */
+  .pc-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+  .pc-name {
+    font-family: var(--display);
+    font-weight: 800; font-size: 1.05rem;
+    color: var(--off-white);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin: 0 0 0.25rem 0;
+  }
+  .pc-id { font-family: var(--mono); font-size: 9px; color: #444; letter-spacing: 1px; }
+
+  /* Stats grid */
+  .pc-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .pc-stat {
+    padding: 0.85rem 1rem;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+  }
+  .pc-stat:last-child { border-right: none; }
+  .pc-stat-label {
+    font-family: var(--mono); font-size: 8px; color: #444;
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.35rem; display: block;
+  }
+  .pc-stat-value {
+    font-family: var(--display); font-weight: 800; font-size: 1.1rem;
+    color: var(--off-white); line-height: 1;
+  }
+  .pc-stat-value.red { color: var(--red); }
+  .pc-stat-value.green { color: #4caf50; }
+  .pc-stat-value.blue { color: #2196f3; }
+
+  /* Progress bar section */
+  .pc-prog-section { margin-bottom: 1.5rem; }
+  .pc-prog-label {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.6rem;
+  }
+  .pc-prog-label-txt {
+    font-family: var(--mono); font-size: 9px; color: #555;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .pc-prog-pct {
+    font-family: var(--display); font-weight: 800; font-size: 1.1rem;
     color: var(--red);
   }
-  .back-link::before {
-    content: '←';
-    font-size: 14px;
+  .pc-prog-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
   }
+  .pc-prog-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red) 0%, #ff4d6d 100%);
+    border-radius: 2px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    will-change: width;
+  }
+  /* Shimmer on the bar */
+  .pc-prog-fill::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.25) 50%,
+      rgba(255,255,255,0) 100%);
+    animation: shimmer 2.5s infinite;
+  }
+  /* Green bar when 100% */
+  .pc-prog-fill.done {
+    background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+  }
+  @keyframes shimmer {
+    0%   { transform: translateX(-200%); }
+    100% { transform: translateX(200%); }
+  }
+  .pc-prog-units {
+    margin-top: 0.5rem;
+    font-family: var(--mono); font-size: 9px; color: #444; letter-spacing: 0.5px;
+  }
+  /* Milestone markers */
+  .pc-milestones {
+    display: flex; justify-content: space-between;
+    margin-top: 0.4rem;
+  }
+  .pc-milestone {
+    font-family: var(--mono); font-size: 8px; color: #333;
+  }
+  .pc-milestone.reached { color: rgba(200,16,46,0.7); }
+
+  /* Timeline */
+  .pc-timeline {
+    display: flex; align-items: center; gap: 0;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .pc-tl-step {
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    flex: 1;
+    opacity: 0.35;
+    transition: opacity 0.3s;
+  }
+  .pc-tl-step.done-step { opacity: 1; }
+  .pc-tl-step.active-step { opacity: 1; }
+  .pc-tl-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    transition: all 0.3s; position: relative; z-index: 2;
+  }
+  .pc-tl-step.done-step .pc-tl-dot {
+    background: #4caf50; border-color: #4caf50;
+    box-shadow: 0 0 8px rgba(76,175,80,0.5);
+  }
+  .pc-tl-step.active-step .pc-tl-dot {
+    background: var(--red); border-color: var(--red);
+    box-shadow: 0 0 10px rgba(200,16,46,0.6);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(200,16,46,0.5); }
+    50%       { box-shadow: 0 0 16px rgba(200,16,46,0.8); }
+  }
+  .pc-tl-label {
+    font-family: var(--mono); font-size: 8px; color: #444;
+    text-transform: uppercase; letter-spacing: 1px; text-align: center;
+    line-height: 1.3;
+  }
+  .pc-tl-step.done-step .pc-tl-label,
+  .pc-tl-step.active-step .pc-tl-label { color: rgba(255,255,255,0.6); }
+  /* Connector lines between steps */
+  .pc-tl-line {
+    flex: 1; height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 0; position: relative; top: -8px;
+  }
+  .pc-tl-line.active { background: rgba(200,16,46,0.4); }
+  .pc-tl-line.done   { background: rgba(76,175,80,0.5); }
+
+  /* ====================================================
+     EMPTY STATE
+     ==================================================== */
+  .empty-state {
+    text-align: center; padding: 3.5rem 1rem;
+  }
+  .empty-icon  { font-size: 2.5rem; margin: 0 0 1rem 0; display: block; }
+  .empty-text  {
+    font-family: var(--display); font-size: 1rem; font-weight: 700;
+    color: var(--off-white); text-transform: uppercase; letter-spacing: 1px;
+    margin: 0 0 0.4rem 0;
+  }
+  .empty-desc  { font-size: 0.85rem; color: #444; margin: 0; line-height: 1.6; }
+
+  /* ====================================================
+     MISC
+     ==================================================== */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 9px; color: #444; letter-spacing: 2px;
+    text-decoration: none; margin-top: 2rem; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--red); }
+  .back-link::before { content: '←'; font-size: 14px; }
+
+  /* ====================================================
+     RESPONSIVE
+     ==================================================== */
   @media (max-width: 600px) {
-    .form-container { padding: 2rem; }
+    .form-container { padding: 2rem 1.5rem; }
     .form-row { grid-template-columns: 1fr; gap: 1rem; }
     .form-title { font-size: 1.8rem; }
+    .tabs-header { gap: 0; }
+    .tab-btn { padding: 0.75rem 1rem 0.75rem 0; margin-right: 0.75rem; font-size: 9px; }
+    .pc-stats { grid-template-columns: 1fr 1fr; }
+    .pc-stat:nth-child(2) { border-right: none; }
+    .pc-stat:nth-child(3) { border-top: 1px solid rgba(255,255,255,0.06); }
+    .pc-stat:nth-child(4) { border-top: 1px solid rgba(255,255,255,0.06); border-right: none; }
   }
 </style>
 </head>
 <body>
 
-<!-- CURSOR -->
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 
-<!-- NAV -->
+<!-- ========================================================
+     NAV
+     ======================================================== -->
 <nav id="mainNav">
   <a href="/" class="nav-logo">
     <div class="nav-logo-mark"><span>MC</span></div>
@@ -186,9 +519,19 @@
     <li><a href="/#how">Cara Kerja</a></li>
     <li><a href="/#why">Keunggulan</a></li>
   </ul>
+  <div class="nav-right" style="display:flex;align-items:center;gap:1.25rem;">
+    <span style="font-family:var(--mono);font-size:10px;color:#555;letter-spacing:1px;">
+      {{ logged_display }}
+    </span>
+    <a href="{% url 'logout' %}" style="font-family:var(--mono);font-size:10px;color:var(--red);text-decoration:none;letter-spacing:2px;">
+      LOGOUT →
+    </a>
+  </div>
   <button class="nav-hamburger" aria-label="Menu">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2">
-      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
   </button>
 </nav>
@@ -196,67 +539,321 @@
 <!-- TICKER -->
 <div class="ticker">
   <div class="ticker-inner" id="ticker">
-    <div class="ticker-item"><span class="dot"></span>SISTEM MANUFAKTUR TERINTEGRASI</div>
-    <div class="ticker-item"><span class="dot"></span>WORK ORDER MANAGEMENT</div>
     <div class="ticker-item"><span class="dot"></span>REAL-TIME PRODUCTION TRACKING</div>
+    <div class="ticker-item"><span class="dot"></span>WORK ORDER MANAGEMENT</div>
     <div class="ticker-item"><span class="dot"></span>DIGITAL APPROVAL WORKFLOW</div>
     <div class="ticker-item"><span class="dot"></span>CAD / GAMBAR TEKNIK UPLOAD</div>
+    <div class="ticker-item"><span class="dot"></span>SISTEM MANUFAKTUR TERINTEGRASI</div>
     <div class="ticker-item"><span class="dot"></span>EFISIENSI OPERASIONAL</div>
-    <div class="ticker-item"><span class="dot"></span>SISTEM MANUFAKTUR TERINTEGRASI</div>
-    <div class="ticker-item"><span class="dot"></span>WORK ORDER MANAGEMENT</div>
     <div class="ticker-item"><span class="dot"></span>REAL-TIME PRODUCTION TRACKING</div>
+    <div class="ticker-item"><span class="dot"></span>WORK ORDER MANAGEMENT</div>
     <div class="ticker-item"><span class="dot"></span>DIGITAL APPROVAL WORKFLOW</div>
     <div class="ticker-item"><span class="dot"></span>CAD / GAMBAR TEKNIK UPLOAD</div>
+    <div class="ticker-item"><span class="dot"></span>SISTEM MANUFAKTUR TERINTEGRASI</div>
     <div class="ticker-item"><span class="dot"></span>EFISIENSI OPERASIONAL</div>
   </div>
 </div>
 
-<!-- FORM SECTION -->
+<!-- ========================================================
+     MAIN SECTION
+     ======================================================== -->
 <section class="form-hero">
   <div class="hero-bg-pattern"></div>
   <div class="hero-bg-overlay"></div>
-  
+
   <div class="form-container">
-    <div class="form-label">STEP 01 — REQUEST FORM</div>
-    <h1 class="form-title">Buat Request<br>Produksi</h1>
-    <p class="form-subtitle">Isi form di bawah untuk mengajukan permintaan produksi baru.</p>
-    
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      
-      <div class="form-row">
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div style="margin-bottom:1.5rem;">
+      {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }}">
+        <span>{% if msg.tags == 'success' %}✓{% elif msg.tags == 'error' %}✕{% else %}⚠{% endif %}</span>
+        <span>{{ msg }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ── TABS ── -->
+    <div class="tabs-header">
+      <button class="tab-btn active" data-tab="pemesanan">
+        <span class="tab-icon">📝</span> Pemesanan
+      </button>
+      <button class="tab-btn" data-tab="riwayat">
+        <span class="tab-icon">📋</span> Riwayat
+        {% if orders %}<span class="tab-badge">{{ orders|length }}</span>{% endif %}
+      </button>
+      <button class="tab-btn" data-tab="progres">
+        <span class="tab-icon">📊</span> Progres
+        {% if active_orders %}<span class="tab-badge blue">{{ active_orders|length }}</span>{% endif %}
+      </button>
+    </div>
+
+    <!-- ============================================================
+         TAB 1 : PEMESANAN
+         ============================================================ -->
+    <div class="tab-content active" id="pemesanan">
+      <span class="form-label">STEP 01 — REQUEST FORM</span>
+      <h1 class="form-title">Buat Request<br>Produksi</h1>
+      <p class="form-subtitle">Isi form di bawah untuk mengajukan permintaan produksi baru. Request akan direview oleh admin sebelum diproses.</p>
+
+      <form method="post" enctype="multipart/form-data" action="{% url 'client_page' %}">
+        {% csrf_token %}
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nama_produk">Nama Produk</label>
+            <input type="text" id="nama_produk" name="product_name" required placeholder="Contoh: Baut M10 × 50mm">
+          </div>
+          <div class="form-group">
+            <label for="jumlah">Jumlah Unit</label>
+            <input type="number" id="jumlah" name="quantity" required min="1" placeholder="Contoh: 500">
+          </div>
+        </div>
+
         <div class="form-group">
-          <label for="nama_produk">Nama Produk</label>
-         <input type="text" id="nama_produk" name="product_name" required placeholder="Contoh: Meja Kayu Jati Premium">
+          <label for="spesifikasi">Spesifikasi Tambahan (Opsional)</label>
+          <textarea id="spesifikasi" name="description" placeholder="Material, dimensi, toleransi, finishing, warna, dll..."></textarea>
         </div>
-        
+
         <div class="form-group">
-          <label for="jumlah">Jumlah Produk</label>
-          <input type="number" id="jumlah" name="quantity" required placeholder="Contoh: 100">
+          <label for="gambar">Gambar Proyeksi / CAD / PDF</label>
+          <div class="file-input-wrapper">
+            <input type="file" id="gambar" name="drawing_file" accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.step">
+            <small>Format: JPG, PNG, PDF, DWG, DXF, STEP — Maks 10MB</small>
+          </div>
         </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="spesifikasi">Spesifikasi Tambahan (Opsional)</label>
-        <textarea id="spesifikasi" name="description" placeholder="Detail material, dimensi, warna, dll..."></textarea>
-      </div>
-      
-      <div class="form-group">
-        <label for="gambar">Gambar Proyeksi / CAD / PDF</label>
-        <div class="file-input-wrapper">
-          <input type="file" id="gambar" name="drawing_file" accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.step">
-          <small>Format: JPG, PNG, PDF, DWG, DXF, STEP (maks 10MB)</small>
+
+        <button type="submit" class="submit-btn">Kirim Request →</button>
+      </form>
+    </div>
+
+    <!-- ============================================================
+         TAB 2 : RIWAYAT
+         ============================================================ -->
+    <div class="tab-content" id="riwayat">
+      <span class="form-label">STEP 02 — ORDER HISTORY</span>
+      <h1 class="form-title">Riwayat<br>Pesanan</h1>
+      <p class="form-subtitle">Semua permintaan produksi yang telah Anda ajukan. Klik tab Progres untuk melihat status produksi secara detail.</p>
+
+      <div class="order-list">
+        {% if orders %}
+          {% for order in orders %}
+          <div class="order-card">
+            <div class="order-card-header">
+              <div class="order-info">
+                <h3>{{ order.product_name }}</h3>
+                <span class="order-id">{{ order.id }}</span>
+              </div>
+              <span class="order-status status-{{ order.status }}">
+                {% if order.status == 'pending'     %}⏳ PENDING
+                {% elif order.status == 'approved'  %}✅ DISETUJUI
+                {% elif order.status == 'rejected'  %}❌ DITOLAK
+                {% elif order.status == 'done'      %}🏁 SELESAI
+                {% else %}{{ order.status|upper }}
+                {% endif %}
+              </span>
+            </div>
+            <div class="order-card-body">
+              <div class="order-detail">
+                <span class="detail-label">Jumlah</span>
+                <span class="detail-value">{{ order.quantity }} unit</span>
+              </div>
+              <div class="order-detail">
+                <span class="detail-label">Tanggal</span>
+                <span class="detail-value">{{ order.created_at|date:"d M Y, H:i" }}</span>
+              </div>
+              {% if order.description %}
+              <div class="order-detail">
+                <span class="detail-label">Spesifikasi</span>
+                <span class="detail-value">{{ order.description|truncatechars:60 }}</span>
+              </div>
+              {% endif %}
+              {% if order.drawing_file %}
+              <div class="order-detail">
+                <span class="detail-label">File Teknik</span>
+                <a href="{% url 'request_download' order.id %}" class="download-link">↓ Download</a>
+              </div>
+              {% endif %}
+            </div>
+            {% if order.status == 'rejected' and order.admin_note %}
+            <div class="reject-note">
+              ⚠ ALASAN PENOLAKAN: {{ order.admin_note }}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="empty-state">
+          <span class="empty-icon">📭</span>
+          <p class="empty-text">Belum ada pesanan</p>
+          <p class="empty-desc">Mulai buat permintaan produksi pertama Anda<br>di tab Pemesanan.</p>
         </div>
+        {% endif %}
       </div>
-      
-      <button type="submit" class="submit-btn">Kirim Request →</button>
-    </form>
-    
+    </div>
+
+    <!-- ============================================================
+         TAB 3 : PROGRES PRODUKSI
+         ============================================================ -->
+    <div class="tab-content" id="progres">
+      <span class="form-label">STEP 03 — PRODUCTION TRACKING</span>
+      <h1 class="form-title">Progres<br>Produksi</h1>
+      <p class="form-subtitle">Pantau perkembangan produksi secara real-time. Progress bar diperbarui otomatis setiap operator mencatat log produksi.</p>
+
+      <div class="progress-list">
+        {% if active_orders %}
+          {% for order in active_orders %}
+
+          {# Tentukan state untuk timeline #}
+          {% with st=order.status pct=order.progress_percent|default:0 %}
+
+          <div class="progress-card">
+
+            <!-- Header -->
+            <div class="pc-header">
+              <div>
+                <h3 class="pc-name">{{ order.product_name }}</h3>
+                <span class="pc-id">WO {{ order.id }}</span>
+              </div>
+              <span class="order-status
+                {% if st == 'pending' %}status-pending
+                {% elif st == 'active' or st == 'in_progress' %}status-in_progress
+                {% elif st == 'done' or st == 'completed' %}status-done
+                {% else %}status-pending{% endif %}">
+                {% if st == 'pending' %}⏳ PENDING
+                {% elif st == 'active' or st == 'in_progress' %}⚙ PRODUKSI
+                {% elif st == 'done' or st == 'completed' %}🏁 SELESAI
+                {% else %}{{ st|upper }}{% endif %}
+              </span>
+            </div>
+
+            <!-- Stats Grid: 4 kolom seperti operator dashboard -->
+            <div class="pc-stats">
+              <div class="pc-stat">
+                <span class="pc-stat-label">Total Order</span>
+                <span class="pc-stat-value">{{ order.quantity }}</span>
+              </div>
+              <div class="pc-stat">
+                <span class="pc-stat-label">Selesai</span>
+                <span class="pc-stat-value red">{{ order.quantity_done|default:0 }}</span>
+              </div>
+              <div class="pc-stat">
+                <span class="pc-stat-label">Sisa</span>
+                <span class="pc-stat-value">
+                  {% with done=order.quantity_done|default:0 %}
+                  {{ order.quantity|add:"-0" }}
+                  {# Hitung sisa: quantity - quantity_done #}
+                  {% endwith %}
+                  {# Fallback simple display #}
+                  —
+                </span>
+              </div>
+              <div class="pc-stat">
+                <span class="pc-stat-label">Target</span>
+                <span class="pc-stat-value blue" style="font-size:0.8rem;">
+                  {% if order.end_date %}{{ order.end_date|date:"d/m/Y" }}{% else %}TBD{% endif %}
+                </span>
+              </div>
+            </div>
+
+            <!-- Progress Bar Section -->
+            <div class="pc-prog-section">
+              <div class="pc-prog-label">
+                <span class="pc-prog-label-txt">Progres Produksi</span>
+                <span class="pc-prog-pct" id="pct-{{ order.id }}">0%</span>
+              </div>
+              <div class="pc-prog-bar">
+                <div class="pc-prog-fill {% if pct >= 100 %}done{% endif %}"
+                     id="bar-{{ order.id }}"
+                     data-target="{{ pct }}"
+                     style="width: 0%;">
+                </div>
+              </div>
+              <!-- Milestone markers -->
+              <div class="pc-milestones">
+                <span class="pc-milestone {% if pct >= 0 %}reached{% endif %}">0%</span>
+                <span class="pc-milestone {% if pct >= 25 %}reached{% endif %}">25%</span>
+                <span class="pc-milestone {% if pct >= 50 %}reached{% endif %}">50%</span>
+                <span class="pc-milestone {% if pct >= 75 %}reached{% endif %}">75%</span>
+                <span class="pc-milestone {% if pct >= 100 %}reached{% endif %}">100%</span>
+              </div>
+              <p class="pc-prog-units">
+                {{ order.quantity_done|default:0 }} dari {{ order.quantity }} unit telah diproduksi
+                {% if order.start_date %}· Mulai {{ order.start_date|date:"d M Y" }}{% endif %}
+              </p>
+            </div>
+
+            <!-- Timeline Status — sama seperti di operator dashboard -->
+            <div class="pc-timeline">
+
+              <!-- Step 1: Request Diajukan -->
+              <div class="pc-tl-step done-step">
+                <div class="pc-tl-dot"></div>
+                <span class="pc-tl-label">Request<br>Diajukan</span>
+              </div>
+
+              <div class="pc-tl-line done"></div>
+
+              <!-- Step 2: Disetujui Admin -->
+              <div class="pc-tl-step done-step">
+                <div class="pc-tl-dot"></div>
+                <span class="pc-tl-label">Disetujui<br>Admin</span>
+              </div>
+
+              <div class="pc-tl-line
+                {% if st == 'active' or st == 'in_progress' or st == 'done' or st == 'completed' %}done
+                {% endif %}">
+              </div>
+
+              <!-- Step 3: Produksi Berjalan -->
+              <div class="pc-tl-step
+                {% if st == 'active' or st == 'in_progress' %}active-step
+                {% elif st == 'done' or st == 'completed' %}done-step
+                {% endif %}">
+                <div class="pc-tl-dot"></div>
+                <span class="pc-tl-label">Produksi<br>Berjalan</span>
+              </div>
+
+              <div class="pc-tl-line
+                {% if st == 'done' or st == 'completed' %}done{% endif %}">
+              </div>
+
+              <!-- Step 4: Selesai -->
+              <div class="pc-tl-step
+                {% if st == 'done' or st == 'completed' %}done-step{% endif %}">
+                <div class="pc-tl-dot"></div>
+                <span class="pc-tl-label">Produksi<br>Selesai</span>
+              </div>
+
+            </div>
+
+          </div>
+          {% endwith %}
+          {% endfor %}
+
+        {% else %}
+        <div class="empty-state">
+          <span class="empty-icon">✅</span>
+          <p class="empty-text">Tidak ada produksi aktif</p>
+          <p class="empty-desc">
+            Order yang sudah disetujui admin akan muncul di sini<br>
+            beserta progress bar produksi real-time dari operator.<br><br>
+            Cek tab <strong style="color:rgba(255,255,255,0.5);">Riwayat</strong> untuk status approval.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div><!-- /tab progres -->
+
     <a href="/" class="back-link">Kembali ke Beranda</a>
   </div>
 </section>
 
-<!-- FOOTER -->
+<!-- ========================================================
+     FOOTER
+     ======================================================== -->
 <footer>
   <div class="container">
     <div class="footer-grid">
@@ -302,5 +899,96 @@
 </footer>
 
 <script src="{% static 'Landing/main.js' %}"></script>
+
+<script>
+  /* ============================================================
+     TAB SWITCHING
+     ============================================================ */
+  const tabBtns     = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  function switchTab(tabId) {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    tabContents.forEach(c => c.classList.remove('active'));
+
+    const btn = document.querySelector(`[data-tab="${tabId}"]`);
+    const content = document.getElementById(tabId);
+    if (btn) btn.classList.add('active');
+    if (content) content.classList.add('active');
+
+    // Animate progress bars when switching to Progres tab
+    if (tabId === 'progres') {
+      setTimeout(animateAllBars, 80);
+    }
+  }
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', function () {
+      switchTab(this.dataset.tab);
+    });
+  });
+
+  /* ============================================================
+     PROGRESS BAR ANIMATION
+     — Starts at 0 and counts up to the real value
+     ============================================================ */
+  function animateBar(barEl, pctEl) {
+    const target = parseFloat(barEl.dataset.target) || 0;
+    const isDone = target >= 100;
+
+    if (isDone) barEl.classList.add('done');
+
+    // Animate width
+    barEl.style.width = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        barEl.style.width = target + '%';
+      });
+    });
+
+    // Animate counter number
+    if (!pctEl) return;
+    let current = 0;
+    const duration = 1200; // ms
+    const startTime = performance.now();
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutCubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      current = eased * target;
+      pctEl.textContent = Math.round(current) + '%';
+      if (progress < 1) requestAnimationFrame(tick);
+      else pctEl.textContent = Math.round(target) + '%';
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function animateAllBars() {
+    document.querySelectorAll('.pc-prog-fill').forEach(bar => {
+      const woId = bar.id.replace('bar-', '');
+      const pctEl = document.getElementById('pct-' + woId);
+      animateBar(bar, pctEl);
+    });
+  }
+
+  // Run on load if progres tab is active (shouldn't be but just in case)
+  document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('progres')?.classList.contains('active')) {
+      setTimeout(animateAllBars, 200);
+    }
+  });
+
+  /* ============================================================
+     URL HASH → auto-open tab
+     E.g. /client-page/#progres will open the progres tab
+     ============================================================ */
+  const hash = window.location.hash.replace('#', '');
+  if (['pemesanan', 'riwayat', 'progres'].includes(hash)) {
+    switchTab(hash);
+  }
+</script>
+
 </body>
 </html>
